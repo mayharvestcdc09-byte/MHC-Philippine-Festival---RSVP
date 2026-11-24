@@ -453,7 +453,7 @@ function setGo(v){going=v;$('yes').className=v?'on':'';$('no').className=v?'no':
 $('yes').onclick=function(){setGo(true)};$('no').onclick=function(){setGo(false)};
 function renderGuests(){
  var n=+$('gc').value,box=$('guests');box.textContent='';
- for(var i=1;i<=n;i++){var g=document.createElement('div');g.className='gb';var h=document.createElement('h3');h.textContent='Guest '+i;var inp=document.createElement('input');inp.placeholder=i==1?'Pangalan mo (buong pangalan)':'Pangalan ni guest '+i;inp.className='gn';var s=document.createElement('select');s.className='gt';['Adult','Bata (Kid)'].forEach(function(o){var op=document.createElement('option');op.textContent=o;s.appendChild(op)});g.appendChild(h);g.appendChild(inp);g.appendChild(s);box.appendChild(g)}
+ for(var i=1;i<=n;i++){var g=document.createElement('div');g.className='gb';var h=document.createElement('h3');h.textContent = 'Panauhin ' + i;var inp=document.createElement('input');inp.placeholder=i==1?'Iyong buong pangalan (Kawani / Empleyado)':'Buong pangalan ng Panauhin '+i;inp.className='gn';var s=document.createElement('select');s.className='gt';['Nakatatanda (Adult)','Bata (Kid)'].forEach(function(o){var op=document.createElement('option');op.textContent=o;s.appendChild(op)});g.appendChild(h);g.appendChild(inp);g.appendChild(s);box.appendChild(g)}
 }
 $('gc').onchange=renderGuests;renderGuests();
 $('send').onclick=async function(){
