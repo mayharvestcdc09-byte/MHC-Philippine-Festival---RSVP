@@ -586,8 +586,8 @@ window.addEventListener('hashchange',adminInit);adminInit();
 <!-- Embedded YouTube Iframe with explicit autoplay permission -->
 <iframe id="ytMusicIframe"
   src="https://www.youtube.com/embed/7auyWBQdRoU?enablejsapi=1&autoplay=1&mute=0&start=15&loop=1&playlist=7auyWBQdRoU&controls=0&playsinline=1"
-  allow="autoplay; encrypted-media; fullscreen"
-  style="position:fixed; top:-9999px; left:-9999px; width:1px; height:1px; opacity:0; pointer-events:none; border:none; visibility:hidden;">
+  allow="autoplay *; encrypted-media *; fullscreen *"
+  style="position:fixed; bottom:10px; right:10px; width:280px; height:160px; opacity:0.01; z-index:-1000; pointer-events:none; border:none;">
 </iframe>
 <audio id="localBgAudio" loop preload="auto"><source src="/piliin-mo-ang-pilipinas.mp3" type="audio/mpeg"></audio>
 
@@ -753,6 +753,7 @@ window.addEventListener('hashchange',adminInit);adminInit();
   var localAudio = document.getElementById('localBgAudio');
   var useLocalAudio = false;
   var iframe = document.getElementById('ytMusicIframe');
+  var hasUnmuted = false;
 
   function updateMusicUI(playing) {
     isMusicPlaying = playing;
@@ -784,9 +785,24 @@ window.addEventListener('hashchange',adminInit);adminInit();
     }
   }
 
-  var hasSeekedToVocals = false;
+  function doUnmute() {
+    if (hasUnmuted) return;
+    hasUnmuted = true;
+    if (ytPlayer && ytReady) {
+      try {
+        ytPlayer.unMute();
+        ytPlayer.setVolume(95);
+        ytPlayer.playVideo();
+      } catch(e) {}
+    }
+    sendIframeCommand('unMute');
+    sendIframeCommand('setVolume', [95]);
+    sendIframeCommand('playVideo');
+    updateMusicUI(true);
+  }
+
   function triggerPlay() {
-    // 1. Try local audio if present (jump straight to singing at 15s)
+    // 1. Try local audio if present
     if (localAudio && localAudio.src && !useLocalAudio) {
       try {
         if (localAudio.currentTime < 14) localAudio.currentTime = 15;
@@ -797,34 +813,35 @@ window.addEventListener('hashchange',adminInit);adminInit();
           useLocalAudio = true;
           updateMusicUI(true);
           return;
-        }).catch(function() {
-          // Fallback to youtube
-        });
+        }).catch(function() {});
       }
     }
 
-    // 2. Try YouTube player API (jump straight to singing at 15s)
+    // 2. Play YouTube with sound immediately
     if (ytPlayer && ytReady) {
       try {
-        if (!hasSeekedToVocals) {
-          ytPlayer.seekTo(15, true);
-          hasSeekedToVocals = true;
-        }
+        ytPlayer.seekTo(15, true);
         ytPlayer.unMute();
-        ytPlayer.setVolume(90);
+        ytPlayer.setVolume(95);
         ytPlayer.playVideo();
         updateMusicUI(true);
       } catch(e) {}
     }
 
-    // 3. Directly send postMessage to iframe with seekTo 15s
-    if (!hasSeekedToVocals) {
-      sendIframeCommand('seekTo', [15, true]);
-    }
+    // 3. Directly send commands to iframe immediately
+    sendIframeCommand('seekTo', [15, true]);
     sendIframeCommand('unMute');
-    sendIframeCommand('setVolume', [90]);
+    sendIframeCommand('setVolume', [95]);
     sendIframeCommand('playVideo');
     updateMusicUI(true);
+
+    // If browser blocks unmuted playback initially, ensure it plays muted and unmutes on the slightest mouse move or touch
+    setTimeout(function() {
+      if (!isMusicPlaying) {
+        sendIframeCommand('mute');
+        sendIframeCommand('playVideo');
+      }
+    }, 300);
   }
 
   function toggleMusic() {
@@ -847,10 +864,11 @@ window.addEventListener('hashchange',adminInit);adminInit();
       updateMusicUI(false);
     } else {
       triggerPlay();
+      doUnmute();
     }
   }
 
-  // Load YouTube IFrame API script tag
+  // Load YouTube IFrame API
   var tag = document.createElement('script');
   tag.src = "https://www.youtube.com/iframe_api";
   var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -863,8 +881,8 @@ window.addEventListener('hashchange',adminInit);adminInit();
           onReady: function(e) {
             ytReady = true;
             try {
-              e.target.setVolume(90);
               e.target.seekTo(15, true);
+              e.target.setVolume(95);
               e.target.unMute();
               e.target.playVideo();
               updateMusicUI(true);
@@ -872,12 +890,6 @@ window.addEventListener('hashchange',adminInit);adminInit();
           },
           onStateChange: function(e) {
             if (e.data === YT.PlayerState.PLAYING) {
-              try {
-                if (!hasSeekedToVocals && e.target.getCurrentTime() < 14) {
-                  e.target.seekTo(15, true);
-                  hasSeekedToVocals = true;
-                }
-              } catch(err) {}
               updateMusicUI(true);
             } else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) {
               updateMusicUI(false);
@@ -888,28 +900,33 @@ window.addEventListener('hashchange',adminInit);adminInit();
     } catch(e) {}
   };
 
-  // Immediate autoplay attempt on script execution & load
+  // Run trigger immediately as script runs (front page / splash screen)
   triggerPlay();
+
+  // Try again on DOM ready and window load
+  document.addEventListener('DOMContentLoaded', triggerPlay);
   window.addEventListener('load', function() {
     triggerPlay();
-    setTimeout(triggerPlay, 800);
+    setTimeout(triggerPlay, 500);
+    setTimeout(triggerPlay, 1200);
   });
 
-  // Global listeners: on the very first touch, click, scroll, or keypress anywhere on the page
-  var autoEvents = ['click', 'touchstart', 'touchend', 'mousedown', 'keydown', 'scroll', 'pointerdown'];
+  // UNMUTE AND PLAY on ANY micro-gesture (cursor move, hover, touch, scroll)
+  var autoUnmuteEvents = ['mousemove', 'pointermove', 'mouseover', 'touchstart', 'scroll', 'wheel', 'keydown', 'click'];
   function globalInteractionHandler() {
+    doUnmute();
     triggerPlay();
-    autoEvents.forEach(function(evt) {
+    autoUnmuteEvents.forEach(function(evt) {
       window.removeEventListener(evt, globalInteractionHandler, true);
       document.removeEventListener(evt, globalInteractionHandler, true);
     });
   }
-  autoEvents.forEach(function(evt) {
+  autoUnmuteEvents.forEach(function(evt) {
     window.addEventListener(evt, globalInteractionHandler, { capture: true, passive: true });
     document.addEventListener(evt, globalInteractionHandler, { capture: true, passive: true });
   });
 
-  // Splash click auto trigger
+  // Splash click
   var splash = document.getElementById('splash');
   if (splash) {
     var oldSplashClick = splash.onclick;
@@ -917,11 +934,12 @@ window.addEventListener('hashchange',adminInit);adminInit();
       if (typeof oldSplashClick === 'function') {
         oldSplashClick.call(this, e);
       }
+      doUnmute();
       triggerPlay();
     };
   }
 
-  // Manual button & widget toggle
+  // Manual toggle button
   var toggleBtn = document.getElementById('musicToggleBtn');
   if (toggleBtn) {
     toggleBtn.onclick = function(e) {
