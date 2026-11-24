@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MHC Christmas Party 2026 &bull; Admin Master Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #0038a8;
+      --navy: #0a1f55;
+      --red: #ce1126;
+      --gold: #fcd116;
+      --cream: #fffdf4;
+      --bg: #fff3d1;
+      --ink: #1b2447;
+      --sub: #5b6385;
+      --border: #e2b93b;
+      --card: #ffffff;
+      --success: #15803d;
+      --success-bg: #dcfce7;
+      --danger: #b91c1c;
+      --danger-bg: #fee2e2;
+      --warn: #b45309;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; }
+    body { background: var(--bg); color: var(--ink); padding: 20px; line-height: 1.5; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    header {
+      background: var(--navy);
+      color: #fff;
+      padding: 18px 24px;
+      border-radius: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+      border: 3px solid var(--gold);
+      box-shadow: 0 6px 20px rgba(10,31,85,0.2);
+    }
+    .brand h1 { font-family: 'Fredoka', sans-serif; font-size: 26px; color: #fff; }
+    .brand p { font-size: 13px; color: var(--gold); font-weight: 700; }
+    .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    
+    .btn {
+      background: var(--red);
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 22px;
+      font-weight: 800;
+      font-size: 13.5px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.2s;
+      box-shadow: 0 3px 0 #920b1b;
+    }
+    .btn.blue { background: var(--blue); box-shadow: 0 3px 0 #002266; }
+    .btn.gold { background: var(--gold); color: var(--navy); box-shadow: 0 3px 0 #c29d05; }
+    .btn.sm { padding: 5px 12px; font-size: 12px; border-radius: 8px; box-shadow: none; }
+    .btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+    .btn:active { transform: translateY(1px); }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .kpi-box {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      text-align: center;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+    }
+    .kpi-num { font-family: 'Fredoka', sans-serif; font-size: 38px; line-height: 1; color: var(--red); }
+    .kpi-lbl { font-size: 11.5px; text-transform: uppercase; font-weight: 800; color: var(--sub); letter-spacing: 0.8px; margin-top: 4px; }
+
+    /* Card */
+    .card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+    }
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .card-head h2 { font-family: 'Fredoka', sans-serif; font-size: 24px; color: var(--red); }
+
+    /* MAP STYLES */
+    .map-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: #fff8e8;
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-bottom: 18px;
+      font-size: 13px;
+    }
+    .map-controls label { font-weight: 800; color: var(--ink); }
+    .map-controls select {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .map-filter-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-left: auto;
+    }
+    .pill-btn {
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      color: var(--ink);
+      transition: all 0.2s;
+    }
+    .pill-btn.active {
+      background: var(--red);
+      color: #fff;
+      border-color: var(--red);
+    }
+
+    .seating-stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .s-stat {
+      background: #fffdf5;
+      border: 1.5px dashed var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .s-stat-lbl { font-size: 12px; font-weight: 800; color: var(--sub); }
+    .s-stat-val { font-size: 20px; font-weight: 900; color: var(--blue); font-family: 'Fredoka', sans-serif; }
+
+    /* Table Grid */
+    .table-map-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .table-card {
+      background: #fffdfa;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
+    .table-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    }
+    .table-card.selected {
+      border: 2.5px solid var(--blue);
+      box-shadow: 0 0 0 3px rgba(0, 56, 168, 0.25);
+    }
+    .table-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .table-name {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 18px;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .seat-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .seat-badge.vacant { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .seat-badge.full { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+    .seat-badge.over { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+
+    .seat-progress-box { margin: 8px 0; }
+    .seat-bar {
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+    .seat-fill {
+      height: 100%;
+      background: var(--success);
+      transition: width 0.3s;
+    }
+    .seat-fill.warn { background: #f59e0b; }
+    .seat-fill.full { background: var(--danger); }
+
+    .seat-count-text {
+      font-size: 11.5px;
+      display: flex;
+      justify-content: space-between;
+      color: var(--sub);
+      font-weight: 700;
+    }
+
+    .mini-seats-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin: 10px 0;
+      padding: 8px 6px;
+      background: #fbf5e6;
+      border-radius: 8px;
+      justify-content: center;
+    }
+    .mini-chair {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 900;
+    }
+    .mini-chair.occupied {
+      background: var(--red);
+      color: #fff;
+    }
+    .mini-chair.vacant {
+      background: #fff;
+      border: 1.5px dashed var(--success);
+      color: var(--success);
+    }
+
+    .table-guest-list {
+      margin-top: auto;
+      border-top: 1px dashed var(--border);
+      padding-top: 8px;
+      font-size: 12px;
+      max-height: 105px;
+      overflow-y: auto;
+    }
+    .table-guest-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 2.5px 0;
+    }
+    .table-guest-item:hover { color: var(--blue); }
+    .unassign-btn {
+      color: #b91c1c;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-weight: 900;
+      font-size: 12px;
+      padding: 0 4px;
+      border-radius: 4px;
+    }
+    .unassign-btn:hover { background: #fee2e2; }
+    .empty-hint { color: #8c9ba5; font-style: italic; font-size: 11.5px; text-align: center; padding: 6px 0; }
+
+    .unassigned-banner {
+      background: #fff3cd;
+      border: 2px solid #ffeeba;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    /* Roster Table */
+    .search-input {
+      padding: 9px 14px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: #fff8e8;
+      font-size: 13.5px;
+      width: 260px;
+    }
+    .table-responsive { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; text-align: left; }
+    th { background: #faeac5; padding: 12px; border-bottom: 2px solid var(--border); font-weight: 800; color: var(--ink); }
+    td { padding: 12px; border-bottom: 1px dotted var(--border); vertical-align: middle; }
+    tr:hover td { background: #fffdf5; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 11.5px;
+    }
+    .badge.yes { background: var(--success-bg); color: var(--success); }
+    .badge.no { background: var(--danger-bg); color: var(--danger); }
+    .badge.checked { background: #dbeafe; color: #0369a1; }
+
+    .table-select {
+      font-size: 12.5px;
+      padding: 5px 8px;
+      border-radius: 6px;
+      border: 1.5px solid var(--border);
+      background: #fff8e8;
+      color: var(--ink);
+      font-weight: 700;
+      max-width: 170px;
+    }
+
+    /* Gate */
+    #gateModal {
+      max-width: 380px;
+      margin: 80px auto;
+      text-align: center;
+      background: var(--card);
+      border: 3px solid var(--gold);
+      border-radius: 20px;
+      padding: 32px 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    #gateModal input {
+      padding: 12px;
+      font-size: 22px;
+      letter-spacing: 5px;
+      text-align: center;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      width: 100%;
+      margin: 16px 0;
+      background: #fff8e8;
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 12px 8px; }
+      header { padding: 14px 16px; border-radius: 14px; flex-direction: column; align-items: stretch; text-align: center; gap: 14px; }
+      .header-actions { flex-direction: column; gap: 8px; width: 100%; }
+      .header-actions .btn { width: 100%; text-align: center; padding: 10px 14px; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
+      .card { padding: 16px 12px; border-radius: 12px; margin-bottom: 18px; }
+      .card-head { flex-direction: column; align-items: stretch; gap: 10px; }
+      .search-input { width: 100%; max-width: 100%; }
+      .table-map-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- PIN GATE -->
+  <div id="gateModal">
+    <div style="font-size:44px; margin-bottom:6px">🇵🇭🎊</div>
+    <h2 style="font-family:'Fredoka',sans-serif; color:var(--red); font-size:28px;">Admin Passcode</h2>
+    <p style="color:var(--sub); font-size:13.5px;">Ilagay ang MHC Admin PIN para mabuksan ang attendee manifest (Default: 2026)</p>
+    <input type="password" id="pinInput" placeholder="••••" maxlength="8" onkeydown="if(event.key==='Enter') unlock()">
+    <button class="btn gold" style="width:100%" onclick="unlock()">ENTER DASHBOARD</button>
+  </div>
+
+  <!-- DASHBOARD CONTENT -->
+  <div id="dashContent" style="display:none;">
+    <header>
+      <div class="brand">
+        <h1>May Harvest Corporation Christmas Party 2026</h1>
+        <p>Philippine Festival &bull; Organizer Master Manifest &amp; Seating</p>
+      </div>
+      <div class="header-actions">
+        <a href="/" class="btn gold">🏠 View Invitation</a>
+        <a href="/scanner" class="btn blue">📷 Registration Scanner</a>
+        <a href="/api/export" class="btn">📥 Export Masterlist (CSV)</a>
+      </div>
+    </header>
+
+    <!-- Top KPI Grid -->
+    <div class="kpi-grid">
+      <div class="kpi-box"><div class="kpi-num" id="kTotal">0</div><div class="kpi-lbl">Kabuuang Sagot</div></div>
+      <div class="kpi-box"><div class="kpi-num" style="color:var(--success)" id="kConfirmed">0</div><div class="kpi-lbl">Dadalo (Confirmed)</div></div>
+      <div class="kpi-box"><div class="kpi-num" style="color:var(--blue)" id="kSeats">0</div><div class="kpi-lbl">Kabuuang Tao / Upuan</div></div>
+      <div class="kpi-box"><div class="kpi-num" style="color:var(--navy)" id="kChecked">0</div><div class="kpi-lbl">Naka-Check In na</div></div>
+      <div class="kpi-box"><div class="kpi-num" style="color:var(--danger)" id="kDeclined">0</div><div class="kpi-lbl">Hindi Makakadalo</div></div>
+    </div>
+
+    <!-- SEATING MAP & VACANT SEATS TRACKER -->
+    <div class="card" id="seatingMapCard">
+      <div class="card-head">
+        <div>
+          <h2>🗺️ Festival Seating Map &amp; Table Occupancy (Mapa ng mga Mesa)</h2>
+          <p style="font-size:13px; color:var(--sub); margin-top:2px;">Visual table allocator &bull; Makikita agad kung ilang upuan na lang ang bakante sa bawat mesa</p>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn sm gold" onclick="promptAddTable()">+ Magdagdag ng Mesa</button>
+        </div>
+      </div>
+
+      <!-- Controls & Filter -->
+      <div class="map-controls">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <label for="capSelect">🪑 Laki ng Mesa (Seats / Table):</label>
+          <select id="capSelect" onchange="changeDefaultCapacity(this.value)">
+            <option value="6">6 seats / table</option>
+            <option value="8">8 seats / table</option>
+            <option value="10" selected>10 seats / table (Standard)</option>
+            <option value="12">12 seats / table</option>
+            <option value="15">15 seats / table</option>
+          </select>
+        </div>
+
+        <div class="map-filter-pills">
+          <button class="pill-btn active" onclick="setMapFilter('all', this)">Lahat ng Mesa</button>
+          <button class="pill-btn" onclick="setMapFilter('vacant', this)">May Bakante</button>
+          <button class="pill-btn" onclick="setMapFilter('full', this)">Puno na</button>
+          <button class="pill-btn" onclick="setMapFilter('unassigned', this)">Wala pang Mesa</button>
+        </div>
+      </div>
+
+      <!-- Seating Summary Bar -->
+      <div class="seating-stats-bar">
+        <div class="s-stat">
+          <span class="s-stat-lbl">Bilang ng Mesa</span>
+          <span class="s-stat-val" id="statTotalTables">10</span>
+        </div>
+        <div class="s-stat">
+          <span class="s-stat-lbl">May Nakatalaga / Total Capacity</span>
+          <span class="s-stat-val" id="statSeatedCap">0 / 100</span>
+        </div>
+        <div class="s-stat">
+          <span class="s-stat-lbl">Kabuuang Bakanteng Upuan</span>
+          <span class="s-stat-val" style="color:var(--success)" id="statTotalVacant">100</span>
+        </div>
+        <div class="s-stat">
+          <span class="s-stat-lbl">Wala pang Mesa</span>
+          <span class="s-stat-val" style="color:var(--warn)" id="statUnassignedCount">0</span>
+        </div>
+      </div>
+
+      <!-- Unassigned Warning Banner -->
+      <div id="unassignedBanner" class="unassigned-banner" style="display:none;">
+        <div>
+          <strong>⚠️ Unassigned Attendees Alert:</strong>
+          <span id="unassignedText">May 0 bisita na wala pang table number.</span>
+        </div>
+        <button class="btn sm blue" onclick="filterUnassignedInRoster()">I-highlight sa Talaan 👇</button>
+      </div>
+
+      <!-- Table Cards Visual Grid -->
+      <div class="table-map-grid" id="tableMapGrid"></div>
+    </div>
+
+    <!-- Pirate Crew Roster Table -->
+    <div class="card">
+      <div class="card-head">
+        <h2>Talaan ng mga Empleyado at Bisita (<span id="countBadge">0</span>)</h2>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <input type="text" class="search-input" id="searchBox" placeholder="🔍 Hanapin ang pangalan o code..." oninput="renderTable()">
+          <button class="btn sm blue" onclick="clearTableFilter()">Ipakita Lahat</button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Ticket Code</th>
+              <th>Pangalan</th>
+              <th>Kasamang Bisita</th>
+              <th>Status</th>
+              <th>Bilang (Seats)</th>
+              <th>Mesa / Table # (May Bakante)</th>
+              <th>Registration Check-In</th>
+              <th>Mensahe / Bati</th>
+              <th>Aksyon</th>
+            </tr>
+          </thead>
+          <tbody id="rosterBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let allGuests = [];
+let defaultCapacity = parseInt(localStorage.getItem('mhc_fest_capacity') || '10', 10);
+let customTables = JSON.parse(localStorage.getItem('mhc_fest_custom_tables') || '[]');
+let activeMapFilter = 'all';
+let currentTableFilter = '';
+
+document.addEventListener('DOMContentLoaded', () => {
+  const sel = document.getElementById('capSelect');
+  if (sel) sel.value = String(defaultCapacity);
+});
+
+async function unlock() {
+  const pin = document.getElementById('pinInput').value.trim();
+  try {
+    const res = await fetch('/api/admin/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin })
+    });
+    const data = await res.json();
+    if (data.valid) {
+      document.getElementById('gateModal').style.display = 'none';
+      document.getElementById('dashContent').style.display = 'block';
+      loadData();
+    } else {
+      alert('Maling Admin PIN.');
+    }
+  } catch(e) {
+    alert('Connection error.');
+  }
+}
+
+async function loadData() {
+  try {
+    const res = await fetch('/api/guests');
+    if (res.ok) {
+      const data = await res.json();
+      allGuests = data.guests || [];
+      const s = data.stats;
+      document.getElementById('kTotal').textContent = s.totalGuests;
+      document.getElementById('kConfirmed').textContent = s.attendingCount;
+      document.getElementById('kSeats').textContent = s.totalSeats;
+      document.getElementById('kChecked').textContent = s.checkedInSeats;
+      document.getElementById('kDeclined').textContent = s.declinedCount;
+      document.getElementById('countBadge').textContent = allGuests.length;
+      
+      renderSeatingMap();
+      renderTable();
+    }
+  } catch(e) {
+    console.error('Failed to load guest data', e);
+  }
+}
+
+function computeSeating() {
+  const tables = {};
+
+  for (let i = 1; i <= 10; i++) {
+    const t = `Fiesta Table ${i}`;
+    tables[t] = { name: t, capacity: defaultCapacity, totalSeats: 0, guests: [] };
+  }
+
+  customTables.forEach(t => {
+    if (!tables[t]) {
+      tables[t] = { name: t, capacity: defaultCapacity, totalSeats: 0, guests: [] };
+    }
+  });
+
+  let unassignedGuests = [];
+  let unassignedSeats = 0;
+  let totalAttendingSeats = 0;
+
+  allGuests.forEach(g => {
+    if (g.status === 'Declined') return;
+    const seats = Math.max(1, parseInt(g.seats, 10) || 1);
+    totalAttendingSeats += seats;
+
+    const t = (g.tableNumber || '').trim();
+    if (!t) {
+      unassignedGuests.push(g);
+      unassignedSeats += seats;
+      return;
+    }
+
+    let norm = /^\d+$/.test(t) ? `Fiesta Table ${t}` : t;
+    if (!tables[norm]) {
+      tables[norm] = { name: norm, capacity: defaultCapacity, totalSeats: 0, guests: [] };
+    }
+
+    tables[norm].guests.push(g);
+    tables[norm].totalSeats += seats;
+  });
+
+  return { tables, unassignedGuests, unassignedSeats, totalAttendingSeats };
+}
+
+function renderSeatingMap() {
+  const { tables, unassignedGuests, unassignedSeats } = computeSeating();
+  const grid = document.getElementById('tableMapGrid');
+  if (!grid) return;
+
+  const tableList = Object.values(tables);
+  let totalCapacity = 0;
+  let totalAssignedSeats = 0;
+
+  tableList.forEach(t => {
+    totalCapacity += t.capacity;
+    totalAssignedSeats += t.totalSeats;
+  });
+
+  const totalVacantOverall = Math.max(0, totalCapacity - totalAssignedSeats);
+
+  document.getElementById('statTotalTables').textContent = tableList.length;
+  document.getElementById('statSeatedCap').textContent = `${totalAssignedSeats} / ${totalCapacity}`;
+  document.getElementById('statTotalVacant').textContent = `${totalVacantOverall} seats`;
+  document.getElementById('statUnassignedCount').textContent = `${unassignedGuests.length} (${unassignedSeats} tao)`;
+
+  const banner = document.getElementById('unassignedBanner');
+  if (unassignedGuests.length > 0) {
+    banner.style.display = 'flex';
+    document.getElementById('unassignedText').textContent = 
+      `May ${unassignedGuests.length} nakumpirmang dadalo (${unassignedSeats} na upuan) na wala pang naka-assign na mesa!`;
+  } else {
+    banner.style.display = 'none';
+  }
+
+  let filteredTables = tableList;
+  if (activeMapFilter === 'vacant') {
+    filteredTables = tableList.filter(t => (t.capacity - t.totalSeats) > 0);
+  } else if (activeMapFilter === 'full') {
+    filteredTables = tableList.filter(t => (t.capacity - t.totalSeats) <= 0 && t.totalSeats > 0);
+  } else if (activeMapFilter === 'unassigned') {
+    filteredTables = [];
+  }
+
+  if (activeMapFilter === 'unassigned') {
+    if (!unassignedGuests.length) {
+      grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:30px; color:var(--success); font-weight:800;">🎉 Lahat ng nakumpirmang dadalo ay may nakatalagang mesa!</div>';
+    } else {
+      grid.innerHTML = `<div style="grid-column:1/-1; background:#fff; border:2px dashed var(--border); border-radius:12px; padding:16px;">
+        <h3 style="font-family:'Fredoka',sans-serif; color:var(--red); font-size:20px; margin-bottom:10px;">📋 Mga Bisitang Wala Pang Mesa:</h3>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:10px;">
+          ${unassignedGuests.map(g => `
+            <div style="background:#fff8e8; padding:10px; border-radius:8px; border:1px solid var(--border);">
+              <div style="font-weight:800; font-size:14px;">${escapeHtml(g.name)}</div>
+              <div style="font-size:12px; color:var(--sub);">${g.seats} tao &bull; Code: <strong>${escapeHtml(g.ticketCode)}</strong></div>
+              <div style="margin-top:6px;">
+                <select class="table-select" style="width:100%" onchange="updateTable('${g.id}', this.value)">
+                  <option value="">I-assign sa mesa...</option>
+                  ${tableList.map(t => {
+                    const vac = Math.max(0, t.capacity - t.totalSeats);
+                    return `<option value="${escapeHtml(t.name)}">${escapeHtml(t.name)} (${vac} vacant)</option>`;
+                  }).join('')}
+                </select>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+    }
+    return;
+  }
+
+  grid.innerHTML = filteredTables.map(t => {
+    const vacant = t.capacity - t.totalSeats;
+    const isFull = vacant <= 0;
+    const isOver = vacant < 0;
+    const pct = Math.min(100, Math.round((t.totalSeats / t.capacity) * 100));
+    const fillClass = isOver ? 'full' : (pct >= 80 ? 'warn' : '');
+
+    let badgeHtml = '';
+    if (isOver) {
+      badgeHtml = `<span class="seat-badge over">⚠️ +${Math.abs(vacant)} OVER</span>`;
+    } else if (isFull) {
+      badgeHtml = `<span class="seat-badge full">🔴 FULL (0 Vacant)</span>`;
+    } else {
+      badgeHtml = `<span class="seat-badge vacant">🟢 ${vacant} Vacant Seats</span>`;
+    }
+
+    let chairsHtml = '';
+    const totalDots = Math.max(t.capacity, t.totalSeats);
+    for (let c = 1; c <= totalDots; c++) {
+      if (c <= t.totalSeats) {
+        chairsHtml += `<div class="mini-chair occupied" title="Occupied seat ${c}">🇵🇭</div>`;
+      } else {
+        chairsHtml += `<div class="mini-chair vacant" title="Vacant seat ${c}">○</div>`;
+      }
+    }
+
+    let guestListHtml = '';
+    if (t.guests.length === 0) {
+      guestListHtml = `<div class="empty-hint">Walang nakatalagang bisita (Bakante lahat)</div>`;
+    } else {
+      guestListHtml = t.guests.map(g => `
+        <div class="table-guest-item">
+          <span><strong>${escapeHtml(g.name)}</strong> (${g.seats} ${g.seats > 1 ? 'seats' : 'seat'})</span>
+          <button class="unassign-btn" title="Alisin sa mesang ito" onclick="updateTable('${g.id}', '')">✕</button>
+        </div>
+      `).join('');
+    }
+
+    const isSelected = currentTableFilter === t.name;
+
+    return `
+      <div class="table-card ${isSelected ? 'selected' : ''}">
+        <div class="table-top">
+          <div class="table-name">🎊 ${escapeHtml(t.name)}</div>
+          ${badgeHtml}
+        </div>
+
+        <div class="seat-progress-box">
+          <div class="seat-bar">
+            <div class="seat-fill ${fillClass}" style="width:${pct}%"></div>
+          </div>
+          <div class="seat-count-text">
+            <span>Taken: <strong>${t.totalSeats}</strong> / ${t.capacity}</span>
+            <span>Vacant: <strong style="color:${isFull ? 'var(--danger)' : 'var(--success)'}">${Math.max(0, vacant)}</strong></span>
+          </div>
+        </div>
+
+        <div class="mini-seats-row">
+          ${chairsHtml}
+        </div>
+
+        <div class="table-guest-list">
+          ${guestListHtml}
+        </div>
+
+        <div style="margin-top:10px;">
+          <button class="btn sm blue" style="width:100%; padding:5px;" onclick="filterTableInRoster('${escapeHtml(t.name)}')">
+            ${isSelected ? '✓ Filtering This Table' : '🔍 Ipakita sa Talaan'}
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function changeDefaultCapacity(val) {
+  defaultCapacity = parseInt(val, 10) || 10;
+  localStorage.setItem('mhc_fest_capacity', String(defaultCapacity));
+  renderSeatingMap();
+  renderTable();
+}
+
+function promptAddTable() {
+  const name = prompt('Ilagay ang pangalan o numero ng bagong mesa (hal. Fiesta Table 11, VIP, Management, Production):');
+  if (!name || !name.trim()) return;
+  const clean = name.trim();
+  if (!customTables.includes(clean)) {
+    customTables.push(clean);
+    localStorage.setItem('mhc_fest_custom_tables', JSON.stringify(customTables));
+  }
+  renderSeatingMap();
+  renderTable();
+}
+
+function setMapFilter(filter, btn) {
+  activeMapFilter = filter;
+  document.querySelectorAll('.map-filter-pills .pill-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderSeatingMap();
+}
+
+function filterTableInRoster(tableName) {
+  currentTableFilter = currentTableFilter === tableName ? '' : tableName;
+  renderSeatingMap();
+  renderTable();
+  const searchBox = document.getElementById('searchBox');
+  if (searchBox) searchBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function filterUnassignedInRoster() {
+  currentTableFilter = '__unassigned__';
+  renderSeatingMap();
+  renderTable();
+  const searchBox = document.getElementById('searchBox');
+  if (searchBox) searchBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function clearTableFilter() {
+  currentTableFilter = '';
+  const searchBox = document.getElementById('searchBox');
+  if (searchBox) searchBox.value = '';
+  renderSeatingMap();
+  renderTable();
+}
+
+function renderTable() {
+  const q = (document.getElementById('searchBox')?.value || '').toLowerCase();
+  const tbody = document.getElementById('rosterBody');
+  const { tables } = computeSeating();
+  const tableList = Object.values(tables);
+
+  let filtered = allGuests.filter(g => 
+    (g.name || '').toLowerCase().includes(q) ||
+    (g.ticketCode || '').toLowerCase().includes(q) ||
+    (g.guestList || '').toLowerCase().includes(q)
+  );
+
+  if (currentTableFilter === '__unassigned__') {
+    filtered = filtered.filter(g => g.status !== 'Declined' && !(g.tableNumber || '').trim());
+  } else if (currentTableFilter) {
+    filtered = filtered.filter(g => {
+      const t = (g.tableNumber || '').trim();
+      const norm = /^\d+$/.test(t) ? `Fiesta Table ${t}` : t;
+      return norm.toLowerCase() === currentTableFilter.toLowerCase();
+    });
+  }
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px; color:var(--sub)">Walang natagpuang talaan na tumutugma sa filter o search.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(g => {
+    const yes = g.status === 'Attending';
+    const currentT = (g.tableNumber || '').trim();
+    const currentNorm = /^\d+$/.test(currentT) ? `Fiesta Table ${currentT}` : currentT;
+
+    let tableOptionsHtml = `<option value="">-- Walang Mesa --</option>`;
+    tableList.forEach(t => {
+      const isSelected = currentNorm.toLowerCase() === t.name.toLowerCase();
+      const vacant = Math.max(0, t.capacity - t.totalSeats);
+      const isFull = vacant <= 0 && !isSelected;
+      tableOptionsHtml += `
+        <option value="${escapeHtml(t.name)}" ${isSelected ? 'selected' : ''}>
+          ${escapeHtml(t.name)} (${vacant} vacant / ${t.capacity})${isFull ? ' [PUNO]' : ''}
+        </option>
+      `;
+    });
+    tableOptionsHtml += `<option value="__custom__">+ Custom Table...</option>`;
+
+    return `<tr>
+      <td><strong style="font-family:monospace; color:var(--blue); font-size:14px">${escapeHtml(g.ticketCode)}</strong></td>
+      <td><strong>${escapeHtml(g.name)}</strong></td>
+      <td><small style="color:var(--sub)">${escapeHtml(g.guestList || '—')}</small></td>
+      <td><span class="badge ${yes?'yes':'no'}">${yes ? 'Dadalo' : 'Hindi'}</span></td>
+      <td><strong style="font-size:15px;">${g.seats}</strong></td>
+      <td>
+        <select class="table-select" onchange="handleTableSelect('${g.id}', this)">
+          ${tableOptionsHtml}
+        </select>
+      </td>
+      <td>
+        <button class="badge ${g.checkedIn?'checked':'yes'}" style="cursor:pointer; border:none;" onclick="toggleCheckin('${g.id}', ${!g.checkedIn})">
+          ${g.checkedIn ? '✓ ENTERED' : '⭕ CHECK IN'}
+        </button>
+      </td>
+      <td><small style="font-style:italic">"${escapeHtml(g.wishes || '—')}"</small></td>
+      <td>
+        <button class="btn" style="padding:4px 10px; font-size:11px; background:#991b1b; box-shadow:none;" onclick="deleteGuest('${g.id}')">Alisin</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function handleTableSelect(guestId, selectElem) {
+  let val = selectElem.value;
+  if (val === '__custom__') {
+    const custom = prompt('Ilagay ang pangalan ng custom table (hal. VIP Table, Executives, Production):');
+    if (!custom || !custom.trim()) {
+      selectElem.value = '';
+      return;
+    }
+    val = custom.trim();
+    if (!customTables.includes(val)) {
+      customTables.push(val);
+      localStorage.setItem('mhc_fest_custom_tables', JSON.stringify(customTables));
+    }
+  }
+  updateTable(guestId, val);
+}
+
+async function updateTable(id, tableNumber) {
+  try {
+    await fetch(`/api/guests/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tableNumber: tableNumber ? tableNumber.trim() : '' })
+    });
+    loadData();
+  } catch(e) {
+    alert('Failed to update table assignment.');
+  }
+}
+
+async function toggleCheckin(id, checkedIn) {
+  await fetch(`/api/guests/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ checkedIn, checkedInAt: checkedIn ? new Date().toISOString() : null })
+  });
+  loadData();
+}
+
+async function deleteGuest(id) {
+  if (!confirm('Alisin ang bisitang ito sa talaan?')) return;
+  await fetch(`/api/guests/${id}`, { method: 'DELETE' });
+  loadData();
+}
+
+function escapeHtml(v) {
+  return String(v || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+</script>
+</body>
+</html>

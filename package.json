@@ -1,0 +1,21 @@
+{
+  "name": "mhc-philippine-festival-rsvp",
+  "version": "1.0.0",
+  "description": "May Harvest Corporation Christmas Party 2026 - Philippine Festival RSVP & QR Check-in System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "rsvp",
+    "may-harvest",
+    "christmas-party",
+    "philippine-festival",
+    "qr-code"
+  ],
+  "author": "May Harvest Corporation",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

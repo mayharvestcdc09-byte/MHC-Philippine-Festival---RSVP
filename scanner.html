@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Entrance Registration Scanner &bull; MHC Christmas Party 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    :root {
+      --blue: #0038a8;
+      --navy: #0a1f55;
+      --red: #ce1126;
+      --gold: #fcd116;
+      --cream: #fffdf4;
+      --bg: #fff3d1;
+      --ink: #1b2447;
+      --sub: #5b6385;
+      --border: #e2b93b;
+      --success: #15803d;
+      --danger: #b91c1c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; }
+    body { background: var(--bg); color: var(--ink); padding: 16px; text-align: center; }
+    .wrap { max-width: 480px; margin: 0 auto; }
+    
+    header {
+      background: var(--navy);
+      color: #fff;
+      padding: 16px;
+      border-radius: 16px;
+      border: 3px solid var(--gold);
+      margin-bottom: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
+    header h1 { font-family: 'Fredoka', sans-serif; font-size: 20px; color: #fff; }
+    header p { font-size: 12px; color: var(--gold); font-weight: 700; margin-top: 2px; }
+
+    .card {
+      background: #ffffff;
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      margin-bottom: 16px;
+    }
+
+    #reader {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+      background: #000;
+    }
+
+    .btn {
+      background: var(--red);
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 24px;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-block;
+      width: 100%;
+      margin-top: 10px;
+      transition: all 0.2s;
+      box-shadow: 0 3px 0 #920b1b;
+    }
+    .btn.gold { background: var(--gold); color: var(--navy); box-shadow: 0 3px 0 #c29d05; }
+    .btn.blue { background: var(--blue); box-shadow: 0 3px 0 #002266; }
+    .btn:hover { filter: brightness(1.08); }
+    .btn:active { transform: translateY(1px); }
+
+    .result {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 14px;
+      display: none;
+      font-size: 14px;
+      animation: pop 0.3s ease;
+      line-height: 1.6;
+    }
+    @keyframes pop {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .result.ok { background: #dcfce7; border: 2px solid #86efac; color: #14532d; }
+    .result.warn { background: #fef3c7; border: 2px solid #fcd34d; color: #78350f; }
+    .result.fail { background: #fee2e2; border: 2px solid #fca5a5; color: #7f1d1d; }
+
+    .manual-box {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .manual-box input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: #fff8e8;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .manual-box button {
+      width: auto;
+      margin: 0;
+      padding: 10px 18px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .nav-links a {
+      flex: 1;
+      text-decoration: none;
+      padding: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      border-radius: 10px;
+      background: #fff;
+      border: 1.5px solid var(--border);
+      color: var(--ink);
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>🇵🇭 Registration QR Scanner</h1>
+    <p>May Harvest Corporation Christmas Party 2026</p>
+  </header>
+
+  <div class="card">
+    <div id="reader"></div>
+    <button class="btn gold" id="btnCam" onclick="toggleCamera()">📷 Buksan ang Camera Scanner</button>
+
+    <div class="manual-box">
+      <input type="text" id="manualInput" placeholder="MHC-123456" onkeydown="if(event.key==='Enter') scanManual()">
+      <button class="btn blue" onclick="scanManual()">I-check</button>
+    </div>
+
+    <div id="resBox" class="result"></div>
+  </div>
+
+  <div class="nav-links">
+    <a href="/">🏠 View Invitation</a>
+    <a href="/admin">📊 Organizer Dashboard</a>
+  </div>
+</div>
+
+<script>
+let scanner = null;
+let running = false;
+let lastCode = '';
+let lastTime = 0;
+
+function toggleCamera() {
+  const btn = document.getElementById('btnCam');
+  if (running) {
+    if (scanner) {
+      scanner.stop().then(() => {
+        running = false;
+        btn.textContent = '📷 Buksan ang Camera Scanner';
+      });
+    }
+  } else {
+    scanner = new Html5Qrcode("reader");
+    scanner.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: { width: 230, height: 230 } },
+      (decodedText) => {
+        const now = Date.now();
+        if (decodedText === lastCode && (now - lastTime < 3000)) return;
+        lastCode = decodedText;
+        lastTime = now;
+        verifyTicket(decodedText);
+      },
+      (err) => {}
+    ).then(() => {
+      running = true;
+      btn.textContent = '⏹ Ihinto ang Camera Scanner';
+    }).catch(err => {
+      alert('Camera access denied or unavailable: ' + err);
+    });
+  }
+}
+
+async function verifyTicket(code) {
+  const box = document.getElementById('resBox');
+  box.style.display = 'block';
+  box.className = 'result';
+  box.innerHTML = 'Sinusuri ang ticket code...';
+
+  try {
+    const res = await fetch('/api/check-in', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: code.trim() })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      const g = data.guest;
+      if (data.alreadyCheckedIn) {
+        box.className = 'result warn';
+        box.innerHTML = `⚠️ <strong>NAKA-CHECK IN NA:</strong><br><strong style="font-size:18px;">${escapeHtml(g.name)}</strong><br><small>${data.message}</small><br><strong>Mesa:</strong> <span style="font-size:16px; font-weight:900;">${escapeHtml(g.tableNumber || 'Open Seating')}</span> &bull; ${g.seats} tao`;
+      } else {
+        box.className = 'result ok';
+        box.innerHTML = `🎉 <strong>MALIGAYANG PAGDATING SA PASKUHAN!</strong><br><strong style="font-size:22px; color:#14532d">${escapeHtml(g.name)}</strong><br><strong>Bilang ng Tao:</strong> ${g.seats} seats &bull; <strong>Nakatakdang Mesa:</strong> <span style="font-size:18px; color:#14532d; font-weight:900;">${escapeHtml(g.tableNumber || 'Open Seating')}</span><br><small style="color:#15803d">${escapeHtml(g.guestList || '')}</small>`;
+      }
+    } else {
+      box.className = 'result fail';
+      box.innerHTML = `❌ <strong>HINDI NATAGPUAN:</strong> ${data.error || 'Maling ticket code.'}`;
+    }
+  } catch(e) {
+    box.className = 'result fail';
+    box.textContent = 'Server connection error.';
+  }
+}
+
+function scanManual() {
+  const inp = document.getElementById('manualInput');
+  const val = inp.value.trim();
+  if (!val) return;
+  verifyTicket(val);
+  inp.value = '';
+}
+
+function escapeHtml(v) {
+  return String(v || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+</script>
+</body>
+</html>
