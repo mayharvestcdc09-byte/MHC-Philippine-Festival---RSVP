@@ -585,7 +585,7 @@ window.addEventListener('hashchange',adminInit);adminInit();
 
 <!-- Embedded YouTube Iframe with explicit autoplay permission -->
 <iframe id="ytMusicIframe"
-  src="https://www.youtube.com/embed/7auyWBQdRoU?enablejsapi=1&autoplay=1&mute=0&loop=1&playlist=7auyWBQdRoU&controls=0&playsinline=1"
+  src="https://www.youtube.com/embed/7auyWBQdRoU?enablejsapi=1&autoplay=1&mute=0&start=15&loop=1&playlist=7auyWBQdRoU&controls=0&playsinline=1"
   allow="autoplay; encrypted-media; fullscreen"
   style="position:fixed; top:-9999px; left:-9999px; width:1px; height:1px; opacity:0; pointer-events:none; border:none; visibility:hidden;">
 </iframe>
@@ -784,9 +784,13 @@ window.addEventListener('hashchange',adminInit);adminInit();
     }
   }
 
+  var hasSeekedToVocals = false;
   function triggerPlay() {
-    // 1. Try local audio if present
+    // 1. Try local audio if present (jump straight to singing at 15s)
     if (localAudio && localAudio.src && !useLocalAudio) {
+      try {
+        if (localAudio.currentTime < 14) localAudio.currentTime = 15;
+      } catch(e) {}
       var p = localAudio.play();
       if (p && p.then) {
         p.then(function() {
@@ -799,9 +803,13 @@ window.addEventListener('hashchange',adminInit);adminInit();
       }
     }
 
-    // 2. Try YouTube player API
+    // 2. Try YouTube player API (jump straight to singing at 15s)
     if (ytPlayer && ytReady) {
       try {
+        if (!hasSeekedToVocals) {
+          ytPlayer.seekTo(15, true);
+          hasSeekedToVocals = true;
+        }
         ytPlayer.unMute();
         ytPlayer.setVolume(90);
         ytPlayer.playVideo();
@@ -809,7 +817,10 @@ window.addEventListener('hashchange',adminInit);adminInit();
       } catch(e) {}
     }
 
-    // 3. Directly send postMessage to iframe (works instantly even before API loads)
+    // 3. Directly send postMessage to iframe with seekTo 15s
+    if (!hasSeekedToVocals) {
+      sendIframeCommand('seekTo', [15, true]);
+    }
     sendIframeCommand('unMute');
     sendIframeCommand('setVolume', [90]);
     sendIframeCommand('playVideo');
@@ -853,6 +864,7 @@ window.addEventListener('hashchange',adminInit);adminInit();
             ytReady = true;
             try {
               e.target.setVolume(90);
+              e.target.seekTo(15, true);
               e.target.unMute();
               e.target.playVideo();
               updateMusicUI(true);
@@ -860,6 +872,12 @@ window.addEventListener('hashchange',adminInit);adminInit();
           },
           onStateChange: function(e) {
             if (e.data === YT.PlayerState.PLAYING) {
+              try {
+                if (!hasSeekedToVocals && e.target.getCurrentTime() < 14) {
+                  e.target.seekTo(15, true);
+                  hasSeekedToVocals = true;
+                }
+              } catch(err) {}
               updateMusicUI(true);
             } else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) {
               updateMusicUI(false);
