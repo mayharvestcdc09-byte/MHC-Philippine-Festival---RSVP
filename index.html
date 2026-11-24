@@ -375,6 +375,11 @@ body {
 
 <div class="wrap">
 
+<a href="/admin" class="top-admin-link" title="Mag-log in sa Admin Dashboard" style="position:absolute; top:18px; right:18px; z-index:35; background:rgba(255,253,244,0.92); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); border:1.5px solid #fcd116; padding:7px 15px; border-radius:999px; font-size:12px; font-weight:800; color:#0a1f55; text-decoration:none; box-shadow:0 3px 10px rgba(0,0,0,0.12); display:inline-flex; align-items:center; gap:6px; transition:transform 0.2s, background 0.2s;">
+  🔐 <span>Admin &bull; Dumating na Bisita</span>
+</a>
+
+
 <section class="hero fade">
 <div class="logo"></div>
 <span class="tag">Christmas Party 2026</span>
@@ -436,7 +441,28 @@ body {
 <div class="done" id="done"><div style="font-size:44px">🎊</div><h3 id="dt">Salamat!</h3><p id="dm"></p><textarea id="copy" readonly hidden></textarea><button class="btn gold" id="cp" hidden type="button" style="margin-top:10px">Kopyahin ang sagot</button></div>
 </div></section>
 
-<div class="foot fade"><h2>Magkita-kita tayo sa Fiesta!</h2><p>Mula sa inyong May Harvest Corporation family ❤️</p></div>
+<div class="foot fade">
+  <h2>Magkita-kita tayo sa Fiesta!</h2>
+  <p>Mula sa inyong May Harvest Corporation family ❤️</p>
+
+  <!-- COORDINATOR & ADMIN ACCESS PANEL -->
+  <div class="coord-access-card" style="margin-top:28px; padding:18px 20px; background:rgba(255,253,244,0.94); border:2px dashed #e0b93a; border-radius:20px; box-shadow:0 4px 18px rgba(0,0,0,0.06); text-align:center;">
+    <div style="font-size:12px; font-weight:900; letter-spacing:1px; color:#ce1126; text-transform:uppercase; margin-bottom:10px;">
+      🇵🇭 Tagapangasiwa / Event Coordinators Access
+    </div>
+    <div style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center; align-items:center; margin-bottom:10px;">
+      <a href="/admin" style="display:inline-flex; align-items:center; gap:6px; background:#0038a8; color:#ffffff; padding:10px 20px; border-radius:999px; text-decoration:none; font-weight:800; font-size:13px; box-shadow:0 3px 10px rgba(0,56,168,0.25); transition:all 0.2s;">
+        📊 <span>Admin Masterlist &amp; Attendance</span>
+      </a>
+      <a href="/scanner" style="display:inline-flex; align-items:center; gap:6px; background:#ce1126; color:#ffffff; padding:10px 20px; border-radius:999px; text-decoration:none; font-weight:800; font-size:13px; box-shadow:0 3px 10px rgba(206,17,38,0.25); transition:all 0.2s;">
+        📷 <span>Entrance Registration Scanner</span>
+      </a>
+    </div>
+    <div style="font-size:11.5px; color:#5b6385; line-height:1.5;">
+      Dito makikita ang kabuuang talaan ng mga dadalo, bilang ng mga <strong>naka-check in o dumating na bisita</strong> sa pinto, at pamamahala ng mga upuan (Default PIN: <code>2026</code>).
+    </div>
+  </div>
+</div>
 </div>
 
 <div id="admin"><div class="in"><div class="logo"></div><h2>Admin: Listahan ng Dadalo</h2><p class="note" id="astat"></p><div class="tiles" id="atiles"></div><div style="text-align:center"><button class="btn gold" id="acopy" type="button" hidden>Kopyahin ang listahan</button></div><div id="alist"></div></div></div>
