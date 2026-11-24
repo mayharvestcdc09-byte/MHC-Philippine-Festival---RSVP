@@ -272,5 +272,358 @@ window.addEventListener('hashchange',adminInit);adminInit();
 }
 </style>
 
+
+<!-- FESTIVAL BACKGROUND MUSIC CONTROLLER -->
+<div id="festivalMusicWidget" class="music-widget">
+  <div class="music-disc-wrap">
+    <div class="music-disc" id="musicDisc">
+      <span class="disc-icon">🇵🇭</span>
+    </div>
+  </div>
+  <div class="music-details">
+    <div class="music-badge">FESTIVAL THEME SONG</div>
+    <div class="music-name">Piliin Mo Ang Pilipinas</div>
+    <div class="music-artist">Angeline Quinto &amp; Vincent Bueno</div>
+  </div>
+  <div class="music-eq" id="musicEq">
+    <span class="bar bar1"></span>
+    <span class="bar bar2"></span>
+    <span class="bar bar3"></span>
+    <span class="bar bar4"></span>
+  </div>
+  <button id="musicToggleBtn" class="music-btn" title="Patugtugin / I-pause ang musika" aria-label="Toggle Music">
+    <span id="musicBtnIcon">▶️</span>
+  </button>
+</div>
+
+<!-- Offscreen YouTube audio player container -->
+<div id="ytMusicPlayerContainer" style="position:fixed; top:-9999px; left:-9999px; width:1px; height:1px; opacity:0; pointer-events:none; visibility:hidden;"></div>
+<audio id="localBgAudio" loop preload="auto"><source src="/piliin-mo-ang-pilipinas.mp3" type="audio/mpeg"></audio>
+
+
+<style>
+/* FESTIVAL MUSIC CONTROLLER STYLES */
+.music-widget {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(10, 31, 85, 0.96), rgba(206, 17, 38, 0.94));
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 50px;
+  border: 2px solid #fcd116;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(252, 209, 22, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
+  user-select: none;
+  cursor: pointer;
+}
+.music-widget:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 0 25px rgba(252, 209, 22, 0.55);
+}
+.music-disc-wrap {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+}
+.music-disc {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #333 30%, #111 70%);
+  border: 2px solid #fcd116;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  font-size: 18px;
+}
+.music-disc.playing {
+  animation: discSpin 4s linear infinite;
+}
+@keyframes discSpin {
+  100% { transform: rotate(360deg); }
+}
+.music-details {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  text-align: left;
+}
+.music-badge {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #fcd116;
+  text-transform: uppercase;
+}
+.music-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+}
+.music-artist {
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.82);
+  white-space: nowrap;
+}
+.music-eq {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 18px;
+  padding: 0 4px;
+}
+.music-eq .bar {
+  width: 3px;
+  background: #fcd116;
+  border-radius: 2px;
+  height: 4px;
+  transition: height 0.2s ease;
+}
+.music-eq.playing .bar1 { animation: eqJump 0.8s ease-in-out infinite alternate; }
+.music-eq.playing .bar2 { animation: eqJump 0.6s ease-in-out 0.2s infinite alternate; }
+.music-eq.playing .bar3 { animation: eqJump 0.9s ease-in-out 0.4s infinite alternate; }
+.music-eq.playing .bar4 { animation: eqJump 0.7s ease-in-out 0.1s infinite alternate; }
+@keyframes eqJump {
+  0% { height: 4px; }
+  100% { height: 18px; }
+}
+.music-btn {
+  background: #fcd116;
+  color: #0a1f55;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  transition: transform 0.15s ease, background 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+.music-btn:hover {
+  transform: scale(1.1);
+  background: #fff;
+}
+.music-btn:active {
+  transform: scale(0.95);
+}
+
+@media (max-width: 600px) {
+  .music-widget {
+    bottom: 16px;
+    right: 16px;
+    padding: 8px 12px;
+    gap: 8px;
+  }
+  .music-disc-wrap, .music-disc {
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
+  }
+  .music-name {
+    font-size: 11.5px;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .music-artist {
+    font-size: 9.5px;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .music-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+}
+</style>
+
+
+<script>
+// FESTIVAL MUSIC CONTROLLER ("Piliin Mo Ang Pilipinas")
+(function(){
+  var ytPlayer = null;
+  var isMusicPlaying = false;
+  var ytReady = false;
+  var localAudio = document.getElementById('localBgAudio');
+  var useLocalAudio = false;
+
+  // Check if local MP3 is available
+  if (localAudio) {
+    localAudio.volume = 0.85;
+    localAudio.addEventListener('playing', function() {
+      useLocalAudio = true;
+      updateMusicUI(true);
+    });
+    localAudio.addEventListener('pause', function() {
+      if (useLocalAudio) updateMusicUI(false);
+    });
+  }
+
+  // Load YouTube IFrame API script tag
+  var tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  var firstScriptTag = document.getElementsByTagName('script')[0];
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+  window.onYouTubeIframeAPIReady = function() {
+    ytPlayer = new YT.Player('ytMusicPlayerContainer', {
+      height: '1',
+      width: '1',
+      videoId: '7auyWBQdRoU', // Angeline Quinto - Piliin Mo Ang Pilipinas feat. Vincent Bueno
+      playerVars: {
+        autoplay: 0,
+        controls: 0,
+        disablekb: 1,
+        fs: 0,
+        loop: 1,
+        playlist: '7auyWBQdRoU',
+        modestbranding: 1,
+        playsinline: 1,
+        rel: 0
+      },
+      events: {
+        onReady: function(e) {
+          ytReady = true;
+          try { e.target.setVolume(85); } catch(err) {}
+        },
+        onStateChange: function(e) {
+          if (e.data === YT.PlayerState.PLAYING) {
+            updateMusicUI(true);
+          } else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) {
+            updateMusicUI(false);
+          }
+        }
+      }
+    });
+  };
+
+  function updateMusicUI(playing) {
+    isMusicPlaying = playing;
+    var disc = document.getElementById('musicDisc');
+    var eq = document.getElementById('musicEq');
+    var icon = document.getElementById('musicBtnIcon');
+    if (disc) {
+      if (playing) disc.classList.add('playing');
+      else disc.classList.remove('playing');
+    }
+    if (eq) {
+      if (playing) eq.classList.add('playing');
+      else eq.classList.remove('playing');
+    }
+    if (icon) {
+      icon.textContent = playing ? '⏸️' : '▶️';
+    }
+  }
+
+  function startMusic() {
+    if (isMusicPlaying) return;
+    
+    // Attempt local audio first if ready
+    if (localAudio && localAudio.src && localAudio.readyState >= 2) {
+      var p = localAudio.play();
+      if (p && p.then) {
+        p.then(function() {
+          useLocalAudio = true;
+          updateMusicUI(true);
+        }).catch(function() {
+          fallbackToYouTube();
+        });
+        return;
+      }
+    }
+    fallbackToYouTube();
+  }
+
+  function fallbackToYouTube() {
+    if (ytPlayer && ytReady) {
+      try {
+        ytPlayer.playVideo();
+      } catch(e) {}
+    }
+  }
+
+  function toggleMusic() {
+    if (useLocalAudio && localAudio) {
+      if (localAudio.paused) {
+        localAudio.play();
+      } else {
+        localAudio.pause();
+      }
+      return;
+    }
+
+    if (ytPlayer && ytReady) {
+      try {
+        if (isMusicPlaying) {
+          ytPlayer.pauseVideo();
+        } else {
+          ytPlayer.playVideo();
+        }
+      } catch(e) {
+        console.error('Music playback error:', e);
+      }
+    } else {
+      // If player not ready yet, try starting local or wait
+      startMusic();
+    }
+  }
+
+  // Hook to splash screen click so music starts automatically when opening envelope
+  var splash = document.getElementById('splash');
+  if (splash) {
+    var oldSplashClick = splash.onclick;
+    splash.onclick = function(e) {
+      if (typeof oldSplashClick === 'function') {
+        oldSplashClick.call(this, e);
+      }
+      setTimeout(startMusic, 400);
+    };
+  }
+
+  // Also play on first user interaction anywhere on document if not started yet
+  function firstInteractionPlay() {
+    startMusic();
+    document.removeEventListener('click', firstInteractionPlay);
+    document.removeEventListener('touchstart', firstInteractionPlay);
+  }
+  document.addEventListener('click', firstInteractionPlay, { once: true });
+  document.addEventListener('touchstart', firstInteractionPlay, { once: true });
+
+  var toggleBtn = document.getElementById('musicToggleBtn');
+  if (toggleBtn) {
+    toggleBtn.onclick = function(e) {
+      e.stopPropagation();
+      toggleMusic();
+    };
+  }
+
+  var widget = document.getElementById('festivalMusicWidget');
+  if (widget) {
+    widget.onclick = function(e) {
+      if (e.target !== toggleBtn && !toggleBtn.contains(e.target)) {
+        toggleMusic();
+      }
+    };
+  }
+})();
+</script>
+
 </body>
 </html>
