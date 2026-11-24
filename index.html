@@ -273,7 +273,8 @@ window.addEventListener('hashchange',adminInit);adminInit();
 </style>
 
 
-<!-- FESTIVAL BACKGROUND MUSIC CONTROLLER -->
+
+<!-- FESTIVAL BACKGROUND MUSIC CONTROLLER (AUTOMATIC AUTOPLAY) -->
 <div id="festivalMusicWidget" class="music-widget">
   <div class="music-disc-wrap">
     <div class="music-disc" id="musicDisc">
@@ -296,10 +297,13 @@ window.addEventListener('hashchange',adminInit);adminInit();
   </button>
 </div>
 
-<!-- Offscreen YouTube audio player container -->
-<div id="ytMusicPlayerContainer" style="position:fixed; top:-9999px; left:-9999px; width:1px; height:1px; opacity:0; pointer-events:none; visibility:hidden;"></div>
+<!-- Embedded YouTube Iframe with explicit autoplay permission -->
+<iframe id="ytMusicIframe"
+  src="https://www.youtube.com/embed/7auyWBQdRoU?enablejsapi=1&autoplay=1&mute=0&loop=1&playlist=7auyWBQdRoU&controls=0&playsinline=1"
+  allow="autoplay; encrypted-media; fullscreen"
+  style="position:fixed; top:-9999px; left:-9999px; width:1px; height:1px; opacity:0; pointer-events:none; border:none; visibility:hidden;">
+</iframe>
 <audio id="localBgAudio" loop preload="auto"><source src="/piliin-mo-ang-pilipinas.mp3" type="audio/mpeg"></audio>
-
 
 <style>
 /* FESTIVAL MUSIC CONTROLLER STYLES */
@@ -454,65 +458,15 @@ window.addEventListener('hashchange',adminInit);adminInit();
 }
 </style>
 
-
 <script>
-// FESTIVAL MUSIC CONTROLLER ("Piliin Mo Ang Pilipinas")
+// SUPER-AUTOMATIC MUSIC CONTROLLER ("Piliin Mo Ang Pilipinas")
 (function(){
   var ytPlayer = null;
   var isMusicPlaying = false;
   var ytReady = false;
   var localAudio = document.getElementById('localBgAudio');
   var useLocalAudio = false;
-
-  // Check if local MP3 is available
-  if (localAudio) {
-    localAudio.volume = 0.85;
-    localAudio.addEventListener('playing', function() {
-      useLocalAudio = true;
-      updateMusicUI(true);
-    });
-    localAudio.addEventListener('pause', function() {
-      if (useLocalAudio) updateMusicUI(false);
-    });
-  }
-
-  // Load YouTube IFrame API script tag
-  var tag = document.createElement('script');
-  tag.src = "https://www.youtube.com/iframe_api";
-  var firstScriptTag = document.getElementsByTagName('script')[0];
-  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-  window.onYouTubeIframeAPIReady = function() {
-    ytPlayer = new YT.Player('ytMusicPlayerContainer', {
-      height: '1',
-      width: '1',
-      videoId: '7auyWBQdRoU', // Angeline Quinto - Piliin Mo Ang Pilipinas feat. Vincent Bueno
-      playerVars: {
-        autoplay: 0,
-        controls: 0,
-        disablekb: 1,
-        fs: 0,
-        loop: 1,
-        playlist: '7auyWBQdRoU',
-        modestbranding: 1,
-        playsinline: 1,
-        rel: 0
-      },
-      events: {
-        onReady: function(e) {
-          ytReady = true;
-          try { e.target.setVolume(85); } catch(err) {}
-        },
-        onStateChange: function(e) {
-          if (e.data === YT.PlayerState.PLAYING) {
-            updateMusicUI(true);
-          } else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) {
-            updateMusicUI(false);
-          }
-        }
-      }
-    });
-  };
+  var iframe = document.getElementById('ytMusicIframe');
 
   function updateMusicUI(playing) {
     isMusicPlaying = playing;
@@ -532,60 +486,126 @@ window.addEventListener('hashchange',adminInit);adminInit();
     }
   }
 
-  function startMusic() {
-    if (isMusicPlaying) return;
-    
-    // Attempt local audio first if ready
-    if (localAudio && localAudio.src && localAudio.readyState >= 2) {
+  function sendIframeCommand(func, args) {
+    if (iframe && iframe.contentWindow) {
+      try {
+        iframe.contentWindow.postMessage(JSON.stringify({
+          event: 'command',
+          func: func,
+          args: args || []
+        }), '*');
+      } catch(e) {}
+    }
+  }
+
+  function triggerPlay() {
+    // 1. Try local audio if present
+    if (localAudio && localAudio.src && !useLocalAudio) {
       var p = localAudio.play();
       if (p && p.then) {
         p.then(function() {
           useLocalAudio = true;
           updateMusicUI(true);
+          return;
         }).catch(function() {
-          fallbackToYouTube();
+          // Fallback to youtube
         });
-        return;
       }
     }
-    fallbackToYouTube();
-  }
 
-  function fallbackToYouTube() {
+    // 2. Try YouTube player API
     if (ytPlayer && ytReady) {
       try {
+        ytPlayer.unMute();
+        ytPlayer.setVolume(90);
         ytPlayer.playVideo();
+        updateMusicUI(true);
       } catch(e) {}
     }
+
+    // 3. Directly send postMessage to iframe (works instantly even before API loads)
+    sendIframeCommand('unMute');
+    sendIframeCommand('setVolume', [90]);
+    sendIframeCommand('playVideo');
+    updateMusicUI(true);
   }
 
   function toggleMusic() {
     if (useLocalAudio && localAudio) {
       if (localAudio.paused) {
         localAudio.play();
+        updateMusicUI(true);
       } else {
         localAudio.pause();
+        updateMusicUI(false);
       }
       return;
     }
 
-    if (ytPlayer && ytReady) {
-      try {
-        if (isMusicPlaying) {
-          ytPlayer.pauseVideo();
-        } else {
-          ytPlayer.playVideo();
-        }
-      } catch(e) {
-        console.error('Music playback error:', e);
+    if (isMusicPlaying) {
+      if (ytPlayer && ytReady) {
+        try { ytPlayer.pauseVideo(); } catch(e) {}
       }
+      sendIframeCommand('pauseVideo');
+      updateMusicUI(false);
     } else {
-      // If player not ready yet, try starting local or wait
-      startMusic();
+      triggerPlay();
     }
   }
 
-  // Hook to splash screen click so music starts automatically when opening envelope
+  // Load YouTube IFrame API script tag
+  var tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  var firstScriptTag = document.getElementsByTagName('script')[0];
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+  window.onYouTubeIframeAPIReady = function() {
+    try {
+      ytPlayer = new YT.Player('ytMusicIframe', {
+        events: {
+          onReady: function(e) {
+            ytReady = true;
+            try {
+              e.target.setVolume(90);
+              e.target.unMute();
+              e.target.playVideo();
+              updateMusicUI(true);
+            } catch(err) {}
+          },
+          onStateChange: function(e) {
+            if (e.data === YT.PlayerState.PLAYING) {
+              updateMusicUI(true);
+            } else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) {
+              updateMusicUI(false);
+            }
+          }
+        }
+      });
+    } catch(e) {}
+  };
+
+  // Immediate autoplay attempt on script execution & load
+  triggerPlay();
+  window.addEventListener('load', function() {
+    triggerPlay();
+    setTimeout(triggerPlay, 800);
+  });
+
+  // Global listeners: on the very first touch, click, scroll, or keypress anywhere on the page
+  var autoEvents = ['click', 'touchstart', 'touchend', 'mousedown', 'keydown', 'scroll', 'pointerdown'];
+  function globalInteractionHandler() {
+    triggerPlay();
+    autoEvents.forEach(function(evt) {
+      window.removeEventListener(evt, globalInteractionHandler, true);
+      document.removeEventListener(evt, globalInteractionHandler, true);
+    });
+  }
+  autoEvents.forEach(function(evt) {
+    window.addEventListener(evt, globalInteractionHandler, { capture: true, passive: true });
+    document.addEventListener(evt, globalInteractionHandler, { capture: true, passive: true });
+  });
+
+  // Splash click auto trigger
   var splash = document.getElementById('splash');
   if (splash) {
     var oldSplashClick = splash.onclick;
@@ -593,19 +613,11 @@ window.addEventListener('hashchange',adminInit);adminInit();
       if (typeof oldSplashClick === 'function') {
         oldSplashClick.call(this, e);
       }
-      setTimeout(startMusic, 400);
+      triggerPlay();
     };
   }
 
-  // Also play on first user interaction anywhere on document if not started yet
-  function firstInteractionPlay() {
-    startMusic();
-    document.removeEventListener('click', firstInteractionPlay);
-    document.removeEventListener('touchstart', firstInteractionPlay);
-  }
-  document.addEventListener('click', firstInteractionPlay, { once: true });
-  document.addEventListener('touchstart', firstInteractionPlay, { once: true });
-
+  // Manual button & widget toggle
   var toggleBtn = document.getElementById('musicToggleBtn');
   if (toggleBtn) {
     toggleBtn.onclick = function(e) {
