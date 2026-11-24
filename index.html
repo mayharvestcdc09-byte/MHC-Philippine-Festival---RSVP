@@ -611,7 +611,7 @@ window.addEventListener('hashchange',adminInit);adminInit();
 
 <!-- Embedded YouTube Iframe with explicit autoplay permission -->
 <iframe id="ytMusicIframe"
-  src="https://www.youtube.com/embed/7auyWBQdRoU?enablejsapi=1&autoplay=1&mute=0&start=15&loop=1&playlist=7auyWBQdRoU&controls=0&playsinline=1"
+  src="https://www.youtube.com/embed/7auyWBQdRoU?enablejsapi=1&autoplay=0&mute=0&start=15&loop=1&playlist=7auyWBQdRoU&controls=0&playsinline=1"
   allow="autoplay *; encrypted-media *; fullscreen *"
   style="position:fixed; bottom:10px; right:10px; width:280px; height:160px; opacity:0.01; z-index:-1000; pointer-events:none; border:none;">
 </iframe>
@@ -771,7 +771,7 @@ window.addEventListener('hashchange',adminInit);adminInit();
 </style>
 
 <script>
-// SUPER-AUTOMATIC MUSIC CONTROLLER ("Piliin Mo Ang Pilipinas")
+// FESTIVAL MUSIC CONTROLLER ("Piliin Mo Ang Pilipinas") - Plays only when first page is clicked
 (function(){
   var ytPlayer = null;
   var isMusicPlaying = false;
@@ -779,7 +779,7 @@ window.addEventListener('hashchange',adminInit);adminInit();
   var localAudio = document.getElementById('localBgAudio');
   var useLocalAudio = false;
   var iframe = document.getElementById('ytMusicIframe');
-  var hasUnmuted = false;
+  var hasStartedFromClick = false;
 
   function updateMusicUI(playing) {
     isMusicPlaying = playing;
@@ -811,24 +811,10 @@ window.addEventListener('hashchange',adminInit);adminInit();
     }
   }
 
-  function doUnmute() {
-    if (hasUnmuted) return;
-    hasUnmuted = true;
-    if (ytPlayer && ytReady) {
-      try {
-        ytPlayer.unMute();
-        ytPlayer.setVolume(95);
-        ytPlayer.playVideo();
-      } catch(e) {}
-    }
-    sendIframeCommand('unMute');
-    sendIframeCommand('setVolume', [95]);
-    sendIframeCommand('playVideo');
-    updateMusicUI(true);
-  }
+  function startMusicPlayback() {
+    hasStartedFromClick = true;
 
-  function triggerPlay() {
-    // 1. Try local audio if present
+    // 1. Try local audio if present (jump to 15s vocals)
     if (localAudio && localAudio.src && !useLocalAudio) {
       try {
         if (localAudio.currentTime < 14) localAudio.currentTime = 15;
@@ -843,7 +829,7 @@ window.addEventListener('hashchange',adminInit);adminInit();
       }
     }
 
-    // 2. Play YouTube with sound immediately
+    // 2. Play YouTube starting directly at 15s (vocals)
     if (ytPlayer && ytReady) {
       try {
         ytPlayer.seekTo(15, true);
@@ -854,20 +840,12 @@ window.addEventListener('hashchange',adminInit);adminInit();
       } catch(e) {}
     }
 
-    // 3. Directly send commands to iframe immediately
+    // 3. Directly send commands to iframe
     sendIframeCommand('seekTo', [15, true]);
     sendIframeCommand('unMute');
     sendIframeCommand('setVolume', [95]);
     sendIframeCommand('playVideo');
     updateMusicUI(true);
-
-    // If browser blocks unmuted playback initially, ensure it plays muted and unmutes on the slightest mouse move or touch
-    setTimeout(function() {
-      if (!isMusicPlaying) {
-        sendIframeCommand('mute');
-        sendIframeCommand('playVideo');
-      }
-    }, 300);
   }
 
   function toggleMusic() {
@@ -889,8 +867,7 @@ window.addEventListener('hashchange',adminInit);adminInit();
       sendIframeCommand('pauseVideo');
       updateMusicUI(false);
     } else {
-      triggerPlay();
-      doUnmute();
+      startMusicPlayback();
     }
   }
 
@@ -907,12 +884,17 @@ window.addEventListener('hashchange',adminInit);adminInit();
           onReady: function(e) {
             ytReady = true;
             try {
-              e.target.seekTo(15, true);
               e.target.setVolume(95);
               e.target.unMute();
-              e.target.playVideo();
-              updateMusicUI(true);
             } catch(err) {}
+            // If user already clicked the first page before API finished loading, play now:
+            if (hasStartedFromClick) {
+              try {
+                e.target.seekTo(15, true);
+                e.target.playVideo();
+                updateMusicUI(true);
+              } catch(err) {}
+            }
           },
           onStateChange: function(e) {
             if (e.data === YT.PlayerState.PLAYING) {
@@ -926,33 +908,8 @@ window.addEventListener('hashchange',adminInit);adminInit();
     } catch(e) {}
   };
 
-  // Run trigger immediately as script runs (front page / splash screen)
-  triggerPlay();
-
-  // Try again on DOM ready and window load
-  document.addEventListener('DOMContentLoaded', triggerPlay);
-  window.addEventListener('load', function() {
-    triggerPlay();
-    setTimeout(triggerPlay, 500);
-    setTimeout(triggerPlay, 1200);
-  });
-
-  // UNMUTE AND PLAY on ANY micro-gesture (cursor move, hover, touch, scroll)
-  var autoUnmuteEvents = ['mousemove', 'pointermove', 'mouseover', 'touchstart', 'scroll', 'wheel', 'keydown', 'click'];
-  function globalInteractionHandler() {
-    doUnmute();
-    triggerPlay();
-    autoUnmuteEvents.forEach(function(evt) {
-      window.removeEventListener(evt, globalInteractionHandler, true);
-      document.removeEventListener(evt, globalInteractionHandler, true);
-    });
-  }
-  autoUnmuteEvents.forEach(function(evt) {
-    window.addEventListener(evt, globalInteractionHandler, { capture: true, passive: true });
-    document.addEventListener(evt, globalInteractionHandler, { capture: true, passive: true });
-  });
-
-  // Splash click
+  // HOOK SPECIFICALLY TO THE FIRST PAGE (SPLASH SCREEN) CLICK:
+  // Music will ONLY start when they click "Buksan ang imbitasyon" / the first page!
   var splash = document.getElementById('splash');
   if (splash) {
     var oldSplashClick = splash.onclick;
@@ -960,12 +917,11 @@ window.addEventListener('hashchange',adminInit);adminInit();
       if (typeof oldSplashClick === 'function') {
         oldSplashClick.call(this, e);
       }
-      doUnmute();
-      triggerPlay();
+      startMusicPlayback();
     };
   }
 
-  // Manual toggle button
+  // Manual toggle button (play/pause anytime)
   var toggleBtn = document.getElementById('musicToggleBtn');
   if (toggleBtn) {
     toggleBtn.onclick = function(e) {
