@@ -83,6 +83,292 @@ textarea{resize:vertical;min-height:76px}
 .rs p{margin:8px 0 0;font-size:13px;color:var(--muted);font-style:italic}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style id="multiDeviceResponsiveLayout">
+/* ========================================================
+   MULTI-DEVICE RESPONSIVE LAYOUT ENGINE (Mobile, Tablet, Desktop)
+   ======================================================== */
+
+/* Base Layout Container Adaptations */
+body {
+  min-height: 100vh;
+  background-color: var(--bg);
+  background-attachment: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-x: hidden;
+}
+
+.wrap {
+  width: 100%;
+  position: relative;
+  transition: max-width 0.3s ease, padding 0.3s ease;
+}
+
+/* 1. MOBILE PHONE STYLES (Default & up to 600px) */
+@media screen and (max-width: 600px) {
+  .wrap {
+    max-width: 100%;
+    padding-bottom: 260px;
+    background-size: 100% auto;
+  }
+  .hero {
+    padding: 160px 16px 10px;
+  }
+  .hero h1 {
+    font-size: 34px;
+    line-height: 1.1;
+  }
+  .hero .co {
+    font-size: 16px;
+  }
+  .count {
+    gap: 6px;
+    margin: 18px 0 6px;
+  }
+  .count div {
+    width: 62px;
+    padding: 8px 0;
+    font-size: 24px;
+    border-radius: 12px;
+  }
+  .count small {
+    font-size: 9px;
+  }
+  .sec {
+    padding: 20px 14px 0;
+  }
+  .sec > h2 {
+    font-size: 23px;
+  }
+  .card {
+    padding: 16px 14px;
+    border-radius: 18px;
+  }
+  .prog div {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    padding: 8px 0;
+  }
+  .prog b {
+    font-size: 12.5px;
+    min-width: auto;
+    color: var(--blue);
+  }
+  .prog span {
+    font-size: 13.5px;
+    color: var(--ink);
+  }
+  .row {
+    font-size: 13.5px;
+    gap: 10px;
+  }
+  .row b {
+    font-size: 11px;
+  }
+}
+
+/* 2. TABLET STYLES (601px to 1024px) */
+@media screen and (min-width: 601px) and (max-width: 1024px) {
+  .wrap {
+    max-width: 720px;
+    padding: 0 24px 280px;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.08);
+  }
+  .hero {
+    padding: 190px 24px 15px;
+  }
+  .hero h1 {
+    font-size: 48px;
+  }
+  .hero .co {
+    font-size: 21px;
+  }
+  .count {
+    gap: 12px;
+  }
+  .count div {
+    width: 82px;
+    padding: 12px 0;
+    font-size: 32px;
+    border-radius: 16px;
+  }
+  .sec {
+    padding: 28px 0 0;
+  }
+  .sec > h2 {
+    font-size: 28px;
+  }
+  .card {
+    padding: 24px;
+    border-radius: 22px;
+  }
+  /* 2-Column Program schedule on Tablets */
+  .card.prog {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px 20px;
+  }
+  .prog div {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 12px;
+    background: rgba(255, 248, 220, 0.65);
+    border-radius: 12px;
+    border: 1px solid rgba(224, 185, 58, 0.35);
+    border-bottom: 1px solid rgba(224, 185, 58, 0.35);
+  }
+  .prog b {
+    font-size: 12px;
+    color: var(--red);
+    margin-bottom: 2px;
+  }
+  .prog span {
+    font-size: 13.5px;
+    line-height: 1.35;
+  }
+  /* 2-Column Guest Fields */
+  #guests {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .gb {
+    margin-top: 0;
+  }
+}
+
+/* 3. DESKTOP COMPUTERS & LAPTOPS (min-width: 1025px) */
+@media screen and (min-width: 1025px) {
+  body {
+    background-color: #f7ebc6;
+    background-image: 
+      radial-gradient(circle at 10% 20%, rgba(206,17,38,0.06) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(0,56,168,0.06) 0%, transparent 40%);
+  }
+  .wrap {
+    max-width: 920px;
+    margin: 30px auto;
+    border-radius: 36px;
+    box-shadow: 0 20px 60px rgba(10, 31, 85, 0.16), 0 2px 10px rgba(0,0,0,0.05);
+    border: 3px solid rgba(252, 209, 22, 0.6);
+    padding: 0 40px 300px;
+    background-size: 100% auto, 100% auto;
+    backdrop-filter: blur(2px);
+  }
+  .bunting.top {
+    border-top-left-radius: 32px;
+    border-top-right-radius: 32px;
+    overflow: hidden;
+  }
+  .hero {
+    padding: 210px 30px 20px;
+  }
+  .hero h1 {
+    font-size: 56px;
+    letter-spacing: -0.5px;
+  }
+  .hero .co {
+    font-size: 24px;
+    letter-spacing: 0.08em;
+  }
+  .hero p {
+    font-size: 18px;
+    max-width: 600px;
+    margin: 14px auto 0;
+  }
+  .count {
+    gap: 16px;
+    margin: 30px 0 10px;
+  }
+  .count div {
+    width: 96px;
+    padding: 16px 0;
+    font-size: 38px;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 56, 168, 0.25);
+  }
+  .count small {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+  }
+  .sec {
+    padding: 34px 10px 0;
+  }
+  .sec > h2 {
+    font-size: 32px;
+    margin-bottom: 18px;
+  }
+  .card {
+    padding: 28px 32px;
+    border-radius: 24px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+  }
+  /* 2-Column Program schedule on Desktop with hover depth */
+  .card.prog {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 24px;
+  }
+  .prog div {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 16px;
+    background: rgba(255, 248, 220, 0.7);
+    border-radius: 14px;
+    border: 1px solid rgba(224, 185, 58, 0.4);
+    border-bottom: 1px solid rgba(224, 185, 58, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .prog div:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    background: #fff;
+  }
+  .prog b {
+    font-size: 12.5px;
+    color: var(--red);
+    margin-bottom: 3px;
+  }
+  .prog span {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+  }
+  /* 2-Column Grid for Guest registration fields on Desktop */
+  #guests {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .gb {
+    margin-top: 0;
+    padding: 14px 16px;
+    border-radius: 16px;
+  }
+  /* Responsive event info details */
+  .row {
+    padding: 12px 0;
+    font-size: 16px;
+  }
+  .row b {
+    font-size: 13px;
+  }
+  input, select, textarea {
+    padding: 13px 16px;
+    font-size: 15px;
+    border-radius: 14px;
+  }
+  .btn {
+    padding: 14px 36px;
+    font-size: 17px;
+  }
+}
+</style>
+
 </head>
 <body>
 <div id="splash"><div class="sun"></div><h2>Maligayang Pasko!</h2><p>May Harvest Corporation</p><button class="btn gold">Buksan ang imbitasyon ✨</button></div>
@@ -109,29 +395,29 @@ textarea{resize:vertical;min-height:76px}
 
 <section class="sec fade"><h2>Takbo ng Gabi</h2>
 <div class="card prog">
-<div><b>4:00 – 5:00 PM</b>Registration</div>
-<div><b>5:00 – 6:00 PM</b>Mass</div>
-<div><b>6:00 – 7:00 PM</b>Dinner</div>
-<div><b>7:00 – 7:10 PM</b>Opening Number</div>
-<div><b>7:10 – 7:20 PM</b>Welcome Remarks</div>
-<div><b>7:20 – 7:30 PM</b>Introduction of Judges</div>
-<div><b>7:30 – 7:40 PM</b>Group 1 Presentation</div>
-<div><b>7:40 – 7:50 PM</b>Group 2 Presentation</div>
-<div><b>8:00 – 8:10 PM</b>Raffle 1</div>
-<div><b>8:10 – 8:20 PM</b>SMFI Speech</div>
-<div><b>8:20 – 8:30 PM</b>Group 3 Presentation</div>
-<div><b>8:30 – 8:40 PM</b>Group 4 Presentation</div>
-<div><b>8:40 – 8:50 PM</b>Ma’am Tin Speech</div>
-<div><b>8:50 – 9:00 PM</b>Raffle 2</div>
-<div><b>8:50 – 9:00 PM</b>Group 5 Presentation</div>
-<div><b>9:00 – 9:10 PM</b>Raffle 3</div>
-<div><b>9:10 – 9:30 PM</b>Awarding</div>
-<div><b>9:30 – 9:45 PM</b>EMM Speech</div>
-<div><b>9:45 – 9:55 PM</b>Raffle 4</div>
-<div><b>9:55 – 10:05 PM</b>Raffle 5</div>
-<div><b>—</b>Closing Remarks</div>
+  <div><b>4:00 – 5:00 PM</b><span>Pagpapatala at Pagdating ng mga Panauhin</span></div>
+  <div><b>5:00 – 6:00 PM</b><span>Banal na Misa</span></div>
+  <div><b>6:00 – 7:00 PM</b><span>Hapunan at Maligayang Pagsasalo-salo</span></div>
+  <div><b>7:00 – 7:10 PM</b><span>Pambungad na Palabas</span></div>
+  <div><b>7:10 – 7:20 PM</b><span>Pambungad na Pananalita</span></div>
+  <div><b>7:20 – 7:30 PM</b><span>Pagpapakilala sa mga Kagalang-galang na Hurado</span></div>
+  <div><b>7:30 – 7:40 PM</b><span>Pagtatanghal ng Unang Pangkat (Pangkat 1)</span></div>
+  <div><b>7:40 – 7:50 PM</b><span>Pagtatanghal ng Ikalawang Pangkat (Pangkat 2)</span></div>
+  <div><b>8:00 – 8:10 PM</b><span>Unang Bunutan sa Raffle (Raffle 1)</span></div>
+  <div><b>8:10 – 8:20 PM</b><span>Mensahe mula sa Pamunuan ng SMFI</span></div>
+  <div><b>8:20 – 8:30 PM</b><span>Pagtatanghal ng Ikatlong Pangkat (Pangkat 3)</span></div>
+  <div><b>8:30 – 8:40 PM</b><span>Pagtatanghal ng Ikaapat na Pangkat (Pangkat 4)</span></div>
+  <div><b>8:40 – 8:50 PM</b><span>Mensahe mula kay Ma. Kristina Fontillas</span></div>
+  <div><b>8:50 – 9:00 PM</b><span>Ikalawang Bunutan sa Raffle (Raffle 2)</span></div>
+  <div><b>8:50 – 9:00 PM</b><span>Pagtatanghal ng Ikalimang Pangkat (Pangkat 5)</span></div>
+  <div><b>9:00 – 9:10 PM</b><span>Ikatlong Bunutan sa Raffle (Raffle 3)</span></div>
+  <div><b>9:10 – 9:30 PM</b><span>Pagpaparangal at Paggawad ng mga Gantimpala</span></div>
+  <div><b>9:30 – 9:45 PM</b><span>Mensahe mula kay Engr. Efren Martinez</span></div>
+  <div><b>9:45 – 9:55 PM</b><span>Ikaapat na Bunutan sa Raffle (Raffle 4)</span></div>
+  <div><b>9:55 – 10:05 PM</b><span>Ikalimang Bunutan sa Raffle (Grand Raffle Draw)</span></div>
+  <div><b>10:05 PM</b><span>Pangwakas na Pananalita at Pasasalamat</span></div>
 </div>
-<p class="note">Mas masaya kapag buo ang team! 🎊</p></section>
+<p class="note">Mas masaya kapag buo ang team at pamilya! 🎊</p></section>
 
 <section class="sec fade" id="rsvp"><h2>Kumpirmahin ang Pagdalo</h2>
 <p class="note" style="margin:-6px 0 14px">Pakisagot bago ang <b>December 5, 2026</b></p>
@@ -237,8 +523,8 @@ window.addEventListener('hashchange',adminInit);adminInit();
     <div style="font-family:'Fredoka',sans-serif; font-size:15px; font-weight:700; color:#0038a8; letter-spacing:1px; margin-bottom:12px;">CHRISTMAS PARTY 2026 &bull; PHILIPPINE FESTIVAL</div>
 
     <div style="background:#fff3d1; border:2px dashed #d29b35; border-radius:14px; padding:12px; margin-bottom:14px;">
-      <div style="font-size:11px; text-transform:uppercase; font-weight:800; color:#5b6385; letter-spacing:1px;">Official Guest & Raffle Entry</div>
-      <div id="passGuestName" style="font-family:'Fredoka',sans-serif; font-size:22px; color:#ce1126; margin:4px 0 2px;">Guest Name</div>
+      <div style="font-size:11px; text-transform:uppercase; font-weight:800; color:#5b6385; letter-spacing:1px;">Opisyal na Pass ng Panauhin at Entri sa Raffle</div>
+      <div id="passGuestName" style="font-family:'Fredoka',sans-serif; font-size:22px; color:#ce1126; margin:4px 0 2px;">Pangalan ng Panauhin</div>
       <div id="passTicketCode" style="font-size:16px; font-weight:900; color:#0038a8; letter-spacing:2px; font-family:monospace;">MHC-000000</div>
     </div>
 
@@ -249,7 +535,7 @@ window.addEventListener('hashchange',adminInit);adminInit();
     <div style="background:#f5f7fa; border:1px solid #d1d5db; border-radius:12px; padding:12px 14px; font-size:12px; margin-bottom:16px; text-align:left; line-height:1.6; color:#1b2447;">
       <div>📅 <strong>Petsa:</strong> Sabado, Dec. 12, 2026 &bull; 5:00 PM</div>
       <div>📍 <strong>Lugar:</strong> MHC, Brgy. Caysio, Santa Maria, Bulacan</div>
-      <div id="passSeats">👥 <strong>Bilang ng Tao / Seats:</strong> 1</div>
+      <div id="passSeats">👥 <strong>Bilang ng Panauhin / Upuan:</strong> 1</div>
       <div id="passTable">🧭 <strong>Mesa / Table:</strong> Open Seating</div>
       <div>🎭 <strong>Kasuotan:</strong> Makulay na Festival Attire / Filipiniana / Barong</div>
     </div>
