@@ -764,7 +764,7 @@ window.addEventListener('hashchange',adminInit);adminInit();
   var localAudio = document.getElementById('localBgAudio');
   var useLocalAudio = false;
   var iframe = document.getElementById('ytMusicIframe');
-  var hasStartedFromClick = false;
+  var hasStartedPlayback = false;
 
   function updateMusicUI(playing) {
     isMusicPlaying = playing;
@@ -796,39 +796,49 @@ window.addEventListener('hashchange',adminInit);adminInit();
     }
   }
 
-  function startMusicPlayback() {
-    hasStartedFromClick = true;
+  function startMusicPlayback(forceRestart) {
+    // If music has already started and is currently playing, DO NOT RESTART/REWIND! Keep continuous!
+    if (hasStartedPlayback && isMusicPlaying && !forceRestart) {
+      return;
+    }
 
-    // 1. Try local audio if present (jump to 15s vocals)
+    var isFirstTime = !hasStartedPlayback || forceRestart;
+    hasStartedPlayback = true;
+
+    // 1. Try local audio if present
     if (localAudio && localAudio.src && !useLocalAudio) {
       try {
-        if (localAudio.currentTime < 14) localAudio.currentTime = 15;
+        if (isFirstTime && localAudio.currentTime < 1) localAudio.currentTime = 15;
       } catch(e) {}
       var p = localAudio.play();
       if (p && p.then) {
         p.then(function() {
           useLocalAudio = true;
           updateMusicUI(true);
-          return;
         }).catch(function() {});
       }
     }
 
-    // 2. Play YouTube starting directly at 15s (vocals)
+    // 2. Play YouTube
     if (ytPlayer && ytReady) {
       try {
-        ytPlayer.seekTo(15, true);
         ytPlayer.unMute();
         ytPlayer.setVolume(95);
+        if (isFirstTime) {
+          ytPlayer.seekTo(15, true);
+        }
         ytPlayer.playVideo();
         updateMusicUI(true);
+        return;
       } catch(e) {}
     }
 
     // 3. Directly send commands to iframe
-    sendIframeCommand('seekTo', [15, true]);
     sendIframeCommand('unMute');
     sendIframeCommand('setVolume', [95]);
+    if (isFirstTime) {
+      sendIframeCommand('seekTo', [15, true]);
+    }
     sendIframeCommand('playVideo');
     updateMusicUI(true);
   }
@@ -852,7 +862,7 @@ window.addEventListener('hashchange',adminInit);adminInit();
       sendIframeCommand('pauseVideo');
       updateMusicUI(false);
     } else {
-      startMusicPlayback();
+      startMusicPlayback(false);
     }
   }
 
@@ -872,11 +882,15 @@ window.addEventListener('hashchange',adminInit);adminInit();
               e.target.setVolume(95);
               e.target.unMute();
             } catch(err) {}
-            // If user already clicked the first page before API finished loading, play now:
-            if (hasStartedFromClick) {
+
+            // If user clicked or interacted before YouTube API finished loading:
+            if (hasStartedPlayback) {
               try {
-                e.target.seekTo(15, true);
-                e.target.playVideo();
+                // If it's already playing, DO NOT SEEK! Only play if not playing
+                var state = e.target.getPlayerState();
+                if (state !== YT.PlayerState.PLAYING) {
+                  e.target.playVideo();
+                }
                 updateMusicUI(true);
               } catch(err) {}
             }
@@ -884,8 +898,14 @@ window.addEventListener('hashchange',adminInit);adminInit();
           onStateChange: function(e) {
             if (e.data === YT.PlayerState.PLAYING) {
               updateMusicUI(true);
-            } else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) {
+            } else if (e.data === YT.PlayerState.PAUSED) {
               updateMusicUI(false);
+            } else if (e.data === YT.PlayerState.ENDED) {
+              // Seamless loop back to 15s vocals
+              try {
+                e.target.seekTo(15, true);
+                e.target.playVideo();
+              } catch(err) {}
             }
           }
         }
@@ -893,8 +913,11 @@ window.addEventListener('hashchange',adminInit);adminInit();
     } catch(e) {}
   };
 
-  // HOOK SPECIFICALLY TO THE FIRST PAGE (SPLASH SCREEN) CLICK:
-  // Music will ONLY start when they click "Buksan ang imbitasyon" / the first page!
+  // Start continuous music upon initial click / tap / opening invitation
+  function continuousPlay() {
+    startMusicPlayback(false);
+  }
+
   var splash = document.getElementById('splash');
   if (splash) {
     var oldSplashClick = splash.onclick;
@@ -902,9 +925,16 @@ window.addEventListener('hashchange',adminInit);adminInit();
       if (typeof oldSplashClick === 'function') {
         oldSplashClick.call(this, e);
       }
-      startMusicPlayback();
+      continuousPlay();
     };
   }
+
+  // Also support any early gesture so music begins playing smoothly without interrupting later
+  ['click', 'touchstart', 'pointerdown'].forEach(function(evt) {
+    window.addEventListener(evt, function() {
+      continuousPlay();
+    }, { capture: true, passive: true });
+  });
 
   // Manual toggle button (play/pause anytime)
   var toggleBtn = document.getElementById('musicToggleBtn');
