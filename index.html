@@ -441,9 +441,11 @@ body {
   <p>Mula sa inyong May Harvest Corporation family ❤️</p>
 
   <!-- Discrete Coordinator Access (Low-opacity, tiny) -->
-  <div style="margin-top:20px; padding-top:12px; border-top:1px dashed rgba(206,17,38,0.15); text-align:center; opacity:0.35; transition:opacity 0.2s ease;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='0.35'">
-    <span style="font-size:10.5px; color:#5b6385; letter-spacing:0.5px;">
-      🔒 <a href="/admin" style="color:inherit; text-decoration:none; font-weight:700;">Admin</a> &bull; <a href="/scanner" style="color:inherit; text-decoration:none; font-weight:700;">Scanner</a>
+  <div style="margin-top:20px; padding-top:12px; border-top:1px dashed rgba(206,17,38,0.15); text-align:center; opacity:0.4; transition:opacity 0.2s ease;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.4'">
+    <span style="font-size:11px; color:#5b6385; letter-spacing:0.5px;">
+      🔒 <a href="/admin" style="color:#0a1f55; text-decoration:none; font-weight:700;">Organizer Portal</a> &bull; 
+      📥 <a href="/api/export" style="color:#0a1f55; text-decoration:none; font-weight:700;">Download Guest List (CSV)</a> &bull; 
+      📷 <a href="/scanner" style="color:#0a1f55; text-decoration:none; font-weight:700;">QR Scanner</a>
     </span>
   </div>
 </div>
@@ -469,59 +471,101 @@ function renderGuests(){
 $('gc').onchange=renderGuests;renderGuests();
 $('send').onclick=async function(){
  var gn0=document.querySelector('.gn'),name=gn0?gn0.value.trim():'';
- var miss=false;document.querySelectorAll('.gn').forEach(function(x,i){if(!x.value.trim()&&(going||i==0))miss=true});if(miss){$('err').textContent=going?'Pakilagay ang pangalan ng lahat ng kasama.':'Pakilagay ang pangalan mo.';return}
+ var miss=false;document.querySelectorAll('.gn').forEach(function(x,i){if(!x.value.trim()&&(going||i==0))miss=true});
+ if(miss){$('err').textContent=going?'Pakilagay ang pangalan ng lahat ng kasama.':'Pakilagay ang pangalan mo.';return}
  $('err').textContent='';
+ 
  var guests=[];
- document.querySelectorAll('.gb').forEach(function(g){var n=g.querySelector('.gn').value.trim()||'(walang pangalan)';guests.push(n+' – '+g.querySelector('.gt').value)});
- var rec={name:name,attending:going,count:going?+$('gc').value:0,guests:going?guests:[],message:$('msg').value.trim(),at:new Date().toISOString()};
- var saved=false;
- try{
-  if(window.claude&&claude.use){var db=await claude.use('db'),us=await claude.use('user');
-   var uid=us?await us.id():null;if(db&&uid){await db.collection('rsvps').doc(uid).set(rec);saved=true}}
- }catch(e){saved=false}
- $('formBox').style.display='none';$('done').style.display='block';
- $('dt').textContent=going?'Salamat, '+name+'!':'Salamat sa pagsagot, '+name+'.';
- if(saved){$('dm').textContent=going?'Naitala na ang pagdalo mo. Magkita-kita tayo sa December 12, 5:00 PM!':'Naitala na ang sagot mo. Sayang, sana sa susunod!'}
- else{var txt='MHC Christmas Party RSVP\n'+name+' — '+(going?'Dadalo ('+rec.count+')':'Hindi makakadalo')+(going?'\n'+guests.join('\n'):'')+(rec.message?'\nMensahe: '+rec.message:'');
-  $('dm').textContent='Hindi pa maitala ang sagot dito. Kopyahin ito at ipadala sa organizer:';
-  $('copy').hidden=false;$('copy').value=txt;$('copy').rows=6;$('cp').hidden=false;
-  $('cp').onclick=function(){$('copy').select();try{navigator.clipboard.writeText(txt)}catch(e){document.execCommand('copy')}$('cp').textContent='Nakopya! ✓'}}
+ document.querySelectorAll('.gb').forEach(function(g, idx){
+  var n=g.querySelector('.gn').value.trim()||('Panauhin '+(idx+1));
+  var t=g.querySelector('.gt').value;
+  guests.push({name:n,type:t});
+ });
+
+ var sendBtn=$('send');
+ sendBtn.disabled=true;
+ var origText=sendBtn.textContent;
+ sendBtn.textContent='Ipinapadala ang sagot...';
+
+ try {
+  var payload={
+   name: name,
+   status: going ? 'Attending' : 'Declined',
+   seats: going ? +$('gc').value : 0,
+   guests: going ? guests : [],
+   message: $('msg').value.trim()
+  };
+
+  var res = await fetch('/api/rsvp', {
+   method: 'POST',
+   headers: { 'Content-Type': 'application/json' },
+   body: JSON.stringify(payload)
+  });
+  var data = await res.json();
+
+  if (!res.ok || !data.success) {
+   throw new Error(data.error || 'Hindi maitala ang sagot.');
+  }
+
+  $('formBox').style.display='none';
+  $('done').style.display='block';
+  $('dt').textContent=going ? 'Salamat, ' + name + '! 🎉' : 'Salamat sa pagsagot, ' + name + '.';
+
+  if (going) {
+   var ticketCode = (data.guest && data.guest.ticketCode) ? data.guest.ticketCode : '';
+   $('dm').innerHTML = 'Matagumpay na naitala ang iyong pagdalo! Narito ang iyong opisyal na <strong>Ticket Code</strong>: <span style="display:inline-block; margin:6px 0; padding:4px 12px; background:#fff3d1; border:2px solid #ce1126; border-radius:8px; color:#ce1126; font-size:18px; font-weight:900; letter-spacing:2px; font-family:monospace;">' + ticketCode + '</span><br><button id="viewPassBtn" class="btn gold" type="button" style="margin-top:14px; padding:10px 24px; font-size:14px;">🎫 Buksan ang Digital Pass &amp; Raffle Ticket</button>';
+
+   var gData = data.guest;
+   if (gData) {
+    if ($('passGuestName')) $('passGuestName').textContent = gData.name;
+    if ($('passTicketCode')) $('passTicketCode').textContent = gData.ticketCode;
+    if ($('passSeats')) $('passSeats').innerHTML = '👥 <strong>Bilang ng Panauhin / Upuan:</strong> ' + gData.seats;
+    if ($('passTable')) $('passTable').innerHTML = '🧭 <strong>Mesa / Table:</strong> ' + (gData.tableNumber || 'Open Seating');
+
+    var qrBox = $('festivalQr');
+    if (qrBox) {
+     qrBox.innerHTML = '';
+     if (typeof QRCode !== 'undefined') {
+      try {
+       new QRCode(qrBox, {
+        text: gData.ticketCode,
+        width: 140,
+        height: 140,
+        colorDark: '#0a1f55',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+       });
+      } catch(e) {}
+     }
+    }
+
+    var showModal = function() {
+     var modal = $('festivalPassModal');
+     if (modal) modal.style.display = 'flex';
+    };
+    var btn = $('viewPassBtn');
+    if (btn) btn.onclick = showModal;
+
+    setTimeout(showModal, 600);
+   }
+  } else {
+   $('dm').textContent = 'Naitala na ang iyong sagot. Sayang at hindi ka makakasama, ngunit maraming salamat sa pagpapaalam!';
+  }
+ } catch(err) {
+  console.error('RSVP Error:', err);
+  $('err').textContent = 'Nagkaroon ng problema: ' + (err.message || 'Hindi maitala ang sagot') + '. Pakisubukan muli.';
+  sendBtn.disabled = false;
+  sendBtn.textContent = origText;
+ }
 };
-var unsub=null,lastTxt='';
-function mk(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
-function render(rows){
- rows.sort(function(a,b){return String(b.at).localeCompare(String(a.at))});
- var yes=rows.filter(function(r){return r.attending}),no=rows.length-yes.length,head=0;
- yes.forEach(function(r){head+=+r.count||0});
- var tl=$('atiles');tl.textContent='';
- [[yes.length,'DADALO (SAGOT)'],[head,'TOTAL NA TAO'],[no,'HINDI DADALO']].forEach(function(x){var d=mk('div',null,String(x[0]));d.appendChild(mk('small',null,x[1]));tl.appendChild(d)});
- $('astat').textContent=rows.length?'Kabuuang sagot: '+rows.length:'Wala pang sumasagot.';
- var L=$('alist');L.textContent='';var lines=['MHC Christmas Party 2026 — Dadalo: '+yes.length+' sagot, '+head+' tao; Hindi dadalo: '+no];
- rows.forEach(function(r){
-  var c=mk('div','rs'),t=mk('div','t');t.appendChild(mk('span',null,r.name||'(walang pangalan)'));
-  t.appendChild(mk('span','b'+(r.attending?'':' no'),r.attending?'Dadalo ('+r.count+')':'Hindi dadalo'));c.appendChild(t);
-  lines.push('',(r.name||'')+' — '+(r.attending?'Dadalo ('+r.count+')':'Hindi dadalo'));
-  if(r.attending&&r.guests&&r.guests.length){var u=mk('ul');r.guests.forEach(function(g){u.appendChild(mk('li',null,g));lines.push('  '+g)});c.appendChild(u)}
-  if(r.message){c.appendChild(mk('p',null,r.message));lines.push('  Mensahe: '+r.message)}
-  L.appendChild(c)});
- lastTxt=lines.join('\n');$('acopy').hidden=!rows.length;
-}
-$('acopy').onclick=function(){try{navigator.clipboard.writeText(lastTxt)}catch(e){}$('acopy').textContent='Nakopya! ✓'};
+
 function adminInit(){
- var ov=$('admin');
- if(location.hash!=='#admin'){ov.style.display='none';if(unsub){unsub();unsub=null}return}
- ov.style.display='block';sp.classList.add('hide');$('astat').textContent='Naglo-load...';
- (async function(){
-  try{
-   if(!(window.claude&&claude.use)){$('astat').textContent='Hindi available ang admin view dito.';return}
-   var us=await claude.use('user'),db=await claude.use('db');
-   if(!db||!us||!(await us.canEdit())){$('astat').textContent='Para sa admin lang ang page na ito. Buksan ito habang naka-sign in bilang owner.';return}
-   if(unsub)unsub();
-   unsub=db.collection('rsvps').onSnapshot(function(q){render(q.docs.map(function(d){return d.data()}))},function(){$('astat').textContent='Hindi ma-load ang mga sagot.'});
-  }catch(e){$('astat').textContent='Hindi ma-load ang mga sagot.'}
- })();
+ if(location.hash === '#admin'){
+  location.href = '/admin';
+ }
 }
-window.addEventListener('hashchange',adminInit);adminInit();
+window.addEventListener('hashchange', adminInit);
+adminInit();
 })();
 </script>
 
