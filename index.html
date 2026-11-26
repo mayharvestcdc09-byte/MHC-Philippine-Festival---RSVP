@@ -596,7 +596,7 @@ window.addEventListener('hashchange',adminInit);adminInit();
 
 <!-- Embedded YouTube Iframe with explicit autoplay permission -->
 <iframe id="ytMusicIframe"
-  src="https://www.youtube.com/embed/7auyWBQdRoU?enablejsapi=1&autoplay=0&mute=0&start=15&loop=1&playlist=7auyWBQdRoU&controls=0&playsinline=1"
+  src="https://www.youtube.com/embed/7auyWBQdRoU?enablejsapi=1&autoplay=1&mute=0&start=15&loop=1&playlist=7auyWBQdRoU&controls=0&playsinline=1"
   allow="autoplay *; encrypted-media *; fullscreen *"
   style="position:fixed; bottom:10px; right:10px; width:280px; height:160px; opacity:0.01; z-index:-1000; pointer-events:none; border:none;">
 </iframe>
@@ -756,7 +756,7 @@ window.addEventListener('hashchange',adminInit);adminInit();
 </style>
 
 <script>
-// FESTIVAL MUSIC CONTROLLER ("Piliin Mo Ang Pilipinas") - Plays only when first page is clicked
+// FESTIVAL MUSIC CONTROLLER ("Piliin Mo Ang Pilipinas") - Starts on initial load and plays continuous
 (function(){
   var ytPlayer = null;
   var isMusicPlaying = false;
@@ -784,6 +784,19 @@ window.addEventListener('hashchange',adminInit);adminInit();
     }
   }
 
+  function isCurrentlyPlaying() {
+    if (isMusicPlaying) return true;
+    if (ytPlayer && ytReady) {
+      try {
+        var s = ytPlayer.getPlayerState();
+        if (s === YT.PlayerState.PLAYING || s === YT.PlayerState.BUFFERING) {
+          return true;
+        }
+      } catch(e) {}
+    }
+    return false;
+  }
+
   function sendIframeCommand(func, args) {
     if (iframe && iframe.contentWindow) {
       try {
@@ -797,8 +810,8 @@ window.addEventListener('hashchange',adminInit);adminInit();
   }
 
   function startMusicPlayback(forceRestart) {
-    // If music has already started and is currently playing, DO NOT RESTART/REWIND! Keep continuous!
-    if (hasStartedPlayback && isMusicPlaying && !forceRestart) {
+    // If music is already playing, DO NOT RESTART OR REWIND!
+    if (isCurrentlyPlaying() && !forceRestart) {
       return;
     }
 
@@ -881,23 +894,23 @@ window.addEventListener('hashchange',adminInit);adminInit();
             try {
               e.target.setVolume(95);
               e.target.unMute();
+              // Start right away on initial load!
+              if (!hasStartedPlayback) {
+                e.target.seekTo(15, true);
+                hasStartedPlayback = true;
+              }
+              e.target.playVideo();
+              updateMusicUI(true);
             } catch(err) {}
 
-            // If user clicked or interacted before YouTube API finished loading:
-            if (hasStartedPlayback) {
-              try {
-                // If it's already playing, DO NOT SEEK! Only play if not playing
-                var state = e.target.getPlayerState();
-                if (state !== YT.PlayerState.PLAYING) {
-                  e.target.playVideo();
-                }
-                updateMusicUI(true);
-              } catch(err) {}
-            }
+            sendIframeCommand('unMute');
+            sendIframeCommand('setVolume', [95]);
+            sendIframeCommand('playVideo');
           },
           onStateChange: function(e) {
             if (e.data === YT.PlayerState.PLAYING) {
               updateMusicUI(true);
+              hasStartedPlayback = true;
             } else if (e.data === YT.PlayerState.PAUSED) {
               updateMusicUI(false);
             } else if (e.data === YT.PlayerState.ENDED) {
@@ -913,8 +926,28 @@ window.addEventListener('hashchange',adminInit);adminInit();
     } catch(e) {}
   };
 
-  // Start continuous music upon initial click / tap / opening invitation
-  function continuousPlay() {
+  // Immediate attempt to play on load / DOM ready
+  startMusicPlayback(false);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { startMusicPlayback(false); });
+  }
+  window.addEventListener('load', function() { startMusicPlayback(false); });
+
+  // Ensure continuous music when moving from splash screen or interacting
+  function ensureContinuousMusic() {
+    if (isCurrentlyPlaying()) {
+      // Audio is already actively playing: do not seek or restart! Just guarantee unmuted
+      if (ytPlayer && ytReady) {
+        try {
+          ytPlayer.unMute();
+          ytPlayer.setVolume(95);
+        } catch(e) {}
+      }
+      sendIframeCommand('unMute');
+      sendIframeCommand('setVolume', [95]);
+      return;
+    }
+    // If not yet playing (e.g. strict browser policy blocked autoplay), start cleanly now
     startMusicPlayback(false);
   }
 
@@ -925,14 +958,14 @@ window.addEventListener('hashchange',adminInit);adminInit();
       if (typeof oldSplashClick === 'function') {
         oldSplashClick.call(this, e);
       }
-      continuousPlay();
+      ensureContinuousMusic();
     };
   }
 
-  // Also support any early gesture so music begins playing smoothly without interrupting later
+  // Any gesture immediately unlocks sound without interrupting ongoing music
   ['click', 'touchstart', 'pointerdown'].forEach(function(evt) {
     window.addEventListener(evt, function() {
-      continuousPlay();
+      ensureContinuousMusic();
     }, { capture: true, passive: true });
   });
 
