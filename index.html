@@ -206,28 +206,33 @@ body {
     padding: 24px;
     border-radius: 22px;
   }
-  /* 2-Column Program schedule on Tablets */
+  /* Straight Single-Column Program schedule on Tablets */
   .card.prog {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 680px;
+    margin: 0 auto;
   }
   .prog div {
     display: flex;
-    flex-direction: column;
-    padding: 10px 12px;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    padding: 11px 16px;
     background: rgba(255, 248, 220, 0.65);
     border-radius: 12px;
     border: 1px solid rgba(224, 185, 58, 0.35);
-    border-bottom: 1px solid rgba(224, 185, 58, 0.35);
   }
   .prog b {
-    font-size: 12px;
+    font-size: 13px;
+    min-width: 130px;
     color: var(--red);
-    margin-bottom: 2px;
+    margin-bottom: 0;
+    white-space: nowrap;
   }
   .prog span {
-    font-size: 13.5px;
+    font-size: 14px;
     line-height: 1.35;
   }
   /* 2-Column Guest Fields */
@@ -307,34 +312,39 @@ body {
     border-radius: 24px;
     box-shadow: 0 12px 32px rgba(0,0,0,0.18);
   }
-  /* 2-Column Program schedule on Desktop with hover depth */
+  /* Straight Single-Column Program schedule on Desktop with hover depth */
   .card.prog {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 720px;
+    margin: 0 auto;
   }
   .prog div {
     display: flex;
-    flex-direction: column;
-    padding: 12px 16px;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    padding: 12px 20px;
     background: rgba(255, 248, 220, 0.7);
     border-radius: 14px;
     border: 1px solid rgba(224, 185, 58, 0.4);
-    border-bottom: 1px solid rgba(224, 185, 58, 0.4);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   }
   .prog div:hover {
-    transform: translateY(-2px);
+    transform: translateX(4px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.06);
     background: #fff;
   }
   .prog b {
-    font-size: 12.5px;
+    font-size: 13.5px;
+    min-width: 140px;
     color: var(--red);
-    margin-bottom: 3px;
+    margin-bottom: 0;
+    white-space: nowrap;
   }
   .prog span {
-    font-size: 14px;
+    font-size: 14.5px;
     font-weight: 700;
     line-height: 1.4;
   }
@@ -640,11 +650,10 @@ adminInit();
 
 <!-- Embedded YouTube Iframe with explicit autoplay permission -->
 <iframe id="ytMusicIframe"
-  src="https://www.youtube.com/embed/7auyWBQdRoU?enablejsapi=1&autoplay=1&mute=0&start=15&loop=1&playlist=7auyWBQdRoU&controls=0&playsinline=1"
+  src="https://www.youtube.com/embed/7auyWBQdRoU?enablejsapi=1&autoplay=1&mute=0&start=0&loop=1&playlist=7auyWBQdRoU&controls=0&playsinline=1"
   allow="autoplay *; encrypted-media *; fullscreen *"
   style="position:fixed; bottom:10px; right:10px; width:280px; height:160px; opacity:0.01; z-index:-1000; pointer-events:none; border:none;">
 </iframe>
-<audio id="localBgAudio" loop preload="auto"><source src="/piliin-mo-ang-pilipinas.mp3" type="audio/mpeg"></audio>
 
 <style>
 /* FESTIVAL MUSIC CONTROLLER STYLES */
@@ -800,15 +809,14 @@ adminInit();
 </style>
 
 <script>
-// FESTIVAL MUSIC CONTROLLER ("Piliin Mo Ang Pilipinas") - Starts on initial load and plays continuous
+// FESTIVAL MUSIC CONTROLLER ("Piliin Mo Ang Pilipinas") - Full song from 0:00, continuous seamless playback
 (function(){
   var ytPlayer = null;
-  var isMusicPlaying = false;
   var ytReady = false;
-  var localAudio = document.getElementById('localBgAudio');
-  var useLocalAudio = false;
+  var isMusicPlaying = false;
+  var userHasPaused = false;
+  var playbackStarted = false;
   var iframe = document.getElementById('ytMusicIframe');
-  var hasStartedPlayback = false;
 
   function updateMusicUI(playing) {
     isMusicPlaying = playing;
@@ -828,19 +836,6 @@ adminInit();
     }
   }
 
-  function isCurrentlyPlaying() {
-    if (isMusicPlaying) return true;
-    if (ytPlayer && ytReady) {
-      try {
-        var s = ytPlayer.getPlayerState();
-        if (s === YT.PlayerState.PLAYING || s === YT.PlayerState.BUFFERING) {
-          return true;
-        }
-      } catch(e) {}
-    }
-    return false;
-  }
-
   function sendIframeCommand(func, args) {
     if (iframe && iframe.contentWindow) {
       try {
@@ -853,73 +848,41 @@ adminInit();
     }
   }
 
-  function startMusicPlayback(forceRestart) {
-    // If music is already playing, DO NOT RESTART OR REWIND!
-    if (isCurrentlyPlaying() && !forceRestart) {
-      return;
-    }
+  function playMusicClean() {
+    if (userHasPaused) return;
+    playbackStarted = true;
 
-    var isFirstTime = !hasStartedPlayback || forceRestart;
-    hasStartedPlayback = true;
-
-    // 1. Try local audio if present
-    if (localAudio && localAudio.src && !useLocalAudio) {
-      try {
-        if (isFirstTime && localAudio.currentTime < 1) localAudio.currentTime = 15;
-      } catch(e) {}
-      var p = localAudio.play();
-      if (p && p.then) {
-        p.then(function() {
-          useLocalAudio = true;
-          updateMusicUI(true);
-        }).catch(function() {});
-      }
-    }
-
-    // 2. Play YouTube
     if (ytPlayer && ytReady) {
       try {
         ytPlayer.unMute();
-        ytPlayer.setVolume(95);
-        if (isFirstTime) {
-          ytPlayer.seekTo(15, true);
-        }
+        ytPlayer.setVolume(90);
         ytPlayer.playVideo();
         updateMusicUI(true);
         return;
       } catch(e) {}
     }
 
-    // 3. Directly send commands to iframe
     sendIframeCommand('unMute');
-    sendIframeCommand('setVolume', [95]);
-    if (isFirstTime) {
-      sendIframeCommand('seekTo', [15, true]);
-    }
+    sendIframeCommand('setVolume', [90]);
     sendIframeCommand('playVideo');
     updateMusicUI(true);
   }
 
-  function toggleMusic() {
-    if (useLocalAudio && localAudio) {
-      if (localAudio.paused) {
-        localAudio.play();
-        updateMusicUI(true);
-      } else {
-        localAudio.pause();
-        updateMusicUI(false);
-      }
-      return;
+  function pauseMusicClean() {
+    userHasPaused = true;
+    if (ytPlayer && ytReady) {
+      try { ytPlayer.pauseVideo(); } catch(e) {}
     }
+    sendIframeCommand('pauseVideo');
+    updateMusicUI(false);
+  }
 
+  function toggleMusic() {
     if (isMusicPlaying) {
-      if (ytPlayer && ytReady) {
-        try { ytPlayer.pauseVideo(); } catch(e) {}
-      }
-      sendIframeCommand('pauseVideo');
-      updateMusicUI(false);
+      pauseMusicClean();
     } else {
-      startMusicPlayback(false);
+      userHasPaused = false;
+      playMusicClean();
     }
   }
 
@@ -927,7 +890,11 @@ adminInit();
   var tag = document.createElement('script');
   tag.src = "https://www.youtube.com/iframe_api";
   var firstScriptTag = document.getElementsByTagName('script')[0];
-  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+  if (firstScriptTag && firstScriptTag.parentNode) {
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+  } else {
+    document.head.appendChild(tag);
+  }
 
   window.onYouTubeIframeAPIReady = function() {
     try {
@@ -936,32 +903,27 @@ adminInit();
           onReady: function(e) {
             ytReady = true;
             try {
-              e.target.setVolume(95);
+              e.target.setVolume(90);
               e.target.unMute();
-              // Start right away on initial load!
-              if (!hasStartedPlayback) {
-                e.target.seekTo(15, true);
-                hasStartedPlayback = true;
+              if (!userHasPaused) {
+                e.target.playVideo();
+                updateMusicUI(true);
               }
-              e.target.playVideo();
-              updateMusicUI(true);
             } catch(err) {}
-
-            sendIframeCommand('unMute');
-            sendIframeCommand('setVolume', [95]);
-            sendIframeCommand('playVideo');
           },
           onStateChange: function(e) {
             if (e.data === YT.PlayerState.PLAYING) {
+              playbackStarted = true;
+              userHasPaused = false;
               updateMusicUI(true);
-              hasStartedPlayback = true;
             } else if (e.data === YT.PlayerState.PAUSED) {
               updateMusicUI(false);
             } else if (e.data === YT.PlayerState.ENDED) {
-              // Seamless loop back to 15s vocals
+              // Seamless loop back to the beginning of the full song (0s)
               try {
-                e.target.seekTo(15, true);
+                e.target.seekTo(0, true);
                 e.target.playVideo();
+                updateMusicUI(true);
               } catch(err) {}
             }
           }
@@ -970,48 +932,33 @@ adminInit();
     } catch(e) {}
   };
 
-  // Immediate attempt to play on load / DOM ready
-  startMusicPlayback(false);
+  // Immediate attempt to play on load / DOM ready (browser autoplay if allowed)
+  playMusicClean();
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() { startMusicPlayback(false); });
+    document.addEventListener('DOMContentLoaded', playMusicClean);
   }
-  window.addEventListener('load', function() { startMusicPlayback(false); });
+  window.addEventListener('load', playMusicClean);
 
-  // Ensure continuous music when moving from splash screen or interacting
-  function ensureContinuousMusic() {
-    if (isCurrentlyPlaying()) {
-      // Audio is already actively playing: do not seek or restart! Just guarantee unmuted
-      if (ytPlayer && ytReady) {
-        try {
-          ytPlayer.unMute();
-          ytPlayer.setVolume(95);
-        } catch(e) {}
-      }
-      sendIframeCommand('unMute');
-      sendIframeCommand('setVolume', [95]);
-      return;
+  // First user interaction unlock handler:
+  // Starts music smoothly if browser blocked initial autoplay, but NEVER seeks or restarts ongoing music!
+  var unlockTriggered = false;
+  function unlockAudioOnce() {
+    if (unlockTriggered) return;
+    unlockTriggered = true;
+
+    // Remove unlock listeners so subsequent clicks (inputs, buttons, page 2 form) never re-trigger audio logic
+    window.removeEventListener('pointerdown', unlockAudioOnce, true);
+    window.removeEventListener('touchstart', unlockAudioOnce, true);
+    window.removeEventListener('click', unlockAudioOnce, true);
+
+    if (!userHasPaused) {
+      playMusicClean();
     }
-    // If not yet playing (e.g. strict browser policy blocked autoplay), start cleanly now
-    startMusicPlayback(false);
   }
 
-  var splash = document.getElementById('splash');
-  if (splash) {
-    var oldSplashClick = splash.onclick;
-    splash.onclick = function(e) {
-      if (typeof oldSplashClick === 'function') {
-        oldSplashClick.call(this, e);
-      }
-      ensureContinuousMusic();
-    };
-  }
-
-  // Any gesture immediately unlocks sound without interrupting ongoing music
-  ['click', 'touchstart', 'pointerdown'].forEach(function(evt) {
-    window.addEventListener(evt, function() {
-      ensureContinuousMusic();
-    }, { capture: true, passive: true });
-  });
+  window.addEventListener('pointerdown', unlockAudioOnce, { capture: true, passive: true });
+  window.addEventListener('touchstart', unlockAudioOnce, { capture: true, passive: true });
+  window.addEventListener('click', unlockAudioOnce, { capture: true, passive: true });
 
   // Manual toggle button (play/pause anytime)
   var toggleBtn = document.getElementById('musicToggleBtn');
